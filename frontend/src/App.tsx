@@ -1,10 +1,19 @@
-import { Button } from "@/components/ui/button"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh">
-      <Button>Click me</Button>
-    </div>
+    <Router>
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <Routes>
+            <Route path="/admin" element={<></>} />
+          </Routes>
+        </SidebarInset>
+      </SidebarProvider>
+    </Router>
   )
 }
 
