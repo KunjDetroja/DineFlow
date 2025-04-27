@@ -1,13 +1,16 @@
 import { Outlet } from "react-router-dom"
-import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/sidebar/app-sidebar"
+import { CommonLayout } from "./CommonLayout"
 
 export function AdminLayout() {
   return (
     <SidebarProvider>
-      <AppSidebar variant="inset" />
+      <AppSidebar/>
       <SidebarInset>
-        <Outlet />
+        <CommonLayout>
+          <Outlet />
+        </CommonLayout>
       </SidebarInset>
     </SidebarProvider>
   )

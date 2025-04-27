@@ -32,11 +32,12 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton 
                 asChild
-                className={location.pathname === item.url ? "bg-accent text-accent-foreground" : ""}
+                isActive={location.pathname === item.url}
+                tooltip={item.title}
               >
                 <Link to={item.url}>
                   <item.icon />
-                  <span>{item.title}</span>
+                  <span className="ml-1 -mt-0.5">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
