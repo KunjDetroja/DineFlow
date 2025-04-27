@@ -1,11 +1,5 @@
 import * as React from "react";
-import {
-  Bell,
-  Moon,
-  Search,
-  Sun,
-  PanelLeftClose,
-} from "lucide-react";
+import { Bell, Moon, Search, Sun, PanelLeftClose } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "../theme-provider";
+import { useTheme } from "./theme-provider";
 import { useSidebar } from "@/components/ui/sidebar";
 
 export function Header() {
@@ -55,7 +49,7 @@ export function Header() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
@@ -64,21 +58,19 @@ export function Header() {
             className="flex transition-transform duration-200"
             onClick={toggleSidebar}
           >
-            <div className="relative h-5 w-5">
-              <PanelLeftClose
-                className={`absolute h-5 w-5 transition-all duration-200 ${
-                  state === "expanded" ? "rotate-0" : "-rotate-180"
-                }`}
-              />
-            </div>
+            <PanelLeftClose
+              className={`absolute h-5 w-5 transition-all duration-200 ${
+                state === "expanded" ? "rotate-0" : "-rotate-180"
+              }`}
+            />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
-          <div className="relative w-96 md:flex hidden">
-            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-96 md:flex hidden ml-2">
+            <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search..."
-              className="pl-9 max-h-8"
+              className="pl-9 max-h-7"
             />
           </div>
         </div>
@@ -98,32 +90,33 @@ export function Header() {
               <DropdownMenuItem>No new notifications</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                {theme === "light" ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
-                )}
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme("light")}>
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")}>
-                Dark
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")}>
-                System
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            className="relative h-9 w-9"
+          >
+            <div className="relative h-4 w-4">
+              <Sun
+                className={`absolute h-4 w-4 transition-all duration-300 ${
+                  theme === "dark"
+                    ? "scale-0 rotate-[-180deg] opacity-0"
+                    : "scale-100 rotate-0 opacity-100"
+                }`}
+              />
+              <Moon
+                className={`absolute h-4 w-4 transition-all duration-300 ${
+                  theme === "dark"
+                    ? "scale-100 rotate-0 opacity-100"
+                    : "scale-0 rotate-180 opacity-0"
+                }`}
+              />
+            </div>
+            <span className="sr-only">Toggle theme</span>
+          </Button>
         </div>
       </div>
-      <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
+      <nav className="flex items-center space-x-1 text-sm text-muted-foreground ml-2">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
