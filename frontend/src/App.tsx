@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Provider } from 'react-redux'
 import { store } from './store'
 import { Toaster } from 'react-hot-toast'
+import InquiryForm from "./pages/inquiry/InquiryForm"
 
 // TODO: Replace with actual auth check
 const isAuthenticated = true
@@ -23,7 +24,7 @@ function App() {
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-
+            <Route path="/inquiry" element={<InquiryForm />} />
             {/* Protected Admin Routes */}
             <Route
               path="/admin"
