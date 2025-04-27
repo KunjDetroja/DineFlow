@@ -9,11 +9,11 @@ const inquirySchema = new mongoose.Schema(
     },
     numberOfOutlets: {
       type: Number,
-      default: 0,
     },
     email: {
       type: String,
       required: true,
+      unique: true,
       trim: true,
       lowercase: true,
     },

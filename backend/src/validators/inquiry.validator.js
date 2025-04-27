@@ -6,7 +6,7 @@ const createInquirySchema = Joi.object({
     "string.empty": "Restaurant name is required.",
   }),
 
-  numberOfOutlets: Joi.number().integer().default(0).messages({
+  numberOfOutlets: Joi.number().integer().optional().messages({
     "number.base": "Number of outlets must be a number.",
   }),
 

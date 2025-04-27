@@ -22,28 +22,36 @@ import {
 import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
+import { removeEmptyFields } from "@/utils";
+import { useCreateInquiryMutation } from "@/store/services/inquiry.service";
+
 
 type FormData = z.infer<typeof inquirySchema>;
 
 export default function InquiryForm() {
+  const [createInquiry] = useCreateInquiryMutation();
   const form = useForm<FormData>({
     resolver: zodResolver(inquirySchema),
     defaultValues: {
       restaurantName: "",
-      numberOfOutlets: 1,
       email: "",
       phone: "",
-      contactName: "",
-      description: "",
+      name: "",
     },
   });
 
   async function onSubmit(data: FormData) {
     try {
-      // TODO: Implement actual API call
-      console.log("Inquiry submitted:", data);
-      toast.success("Inquiry submitted successfully!");
-      form.reset();
+      const cleanedData = removeEmptyFields(data);
+      const response  = await createInquiry(cleanedData);
+      // if(response.data?.success){
+      //   toast.success(response.data?.message || "");
+      // }else{
+      //   toast.error(response.error?.message || "Failed to submit inquiry");
+      // }
+      console.log("Inquiry submitted:", response);
+      // toast.success("Inquiry submitted successfully!");
+      // form.reset();
     } catch (error) {
       toast.error("Failed to submit inquiry. Please try again.");
       console.error("Inquiry submission error:", error);
@@ -65,21 +73,30 @@ export default function InquiryForm() {
           <CardHeader>
             <CardTitle className="text-2xl">Contact Us</CardTitle>
             <CardDescription>
-              Please provide your restaurant details and we'll help you get started
+              Please provide your restaurant details and we'll help you get
+              started
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="restaurantName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Restaurant Name</FormLabel>
+                        <FormLabel>
+                          Restaurant Name<span className="text-red-400">*</span>
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter restaurant name" {...field} />
+                          <Input
+                            placeholder="Enter restaurant name"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -94,10 +111,11 @@ export default function InquiryForm() {
                         <FormControl>
                           <Input
                             type="number"
-                            min="1"
                             placeholder="Enter number of outlets"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value))
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -111,7 +129,9 @@ export default function InquiryForm() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>
+                          Email<span className="text-red-400">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -128,7 +148,9 @@ export default function InquiryForm() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>
+                          Phone Number<span className="text-red-400">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="tel"
@@ -143,10 +165,13 @@ export default function InquiryForm() {
                 </div>
                 <FormField
                   control={form.control}
-                  name="contactName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact Person Name</FormLabel>
+                      <FormLabel>
+                        Contact Person Name
+                        <span className="text-red-400">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter contact person name"
@@ -171,7 +196,8 @@ export default function InquiryForm() {
                         />
                       </FormControl>
                       <FormDescription>
-                        Please provide details about your restaurant and what you're looking for
+                        Please provide details about your restaurant and what
+                        you're looking for
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -187,4 +213,4 @@ export default function InquiryForm() {
       </div>
     </div>
   );
-} 
+}

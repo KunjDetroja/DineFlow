@@ -1,5 +1,5 @@
 const userService = require("../services/user.service");
-const { errorResponse, successResponse } = require("../utils/response");
+const { errorResponse, successResponse, catchResponse } = require("../utils/response");
 
 const loginUser = async (req, res) => {
   try {
@@ -15,11 +15,7 @@ const loginUser = async (req, res) => {
     );
   } catch (error) {
     console.error("Error logging in user:", error);
-    return res.status(500).json({
-      status: 500,
-      message: "Internal server error",
-      success: false,
-    });
+    return catchResponse(res);
   }
 };
 

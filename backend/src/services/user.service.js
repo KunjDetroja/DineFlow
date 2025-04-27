@@ -1,11 +1,62 @@
 const User = require("../models/user.model");
-const { loginSchema } = require("../validators/user.validator");
+const { CHEF, ORDERTAKER, MANAGER } = require("../utils/constant");
+const { loginUserSchema, createUserSchema } = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
+
+const createUser = async (data,session) => {
+  try {
+    const { error } = createUserSchema.validate(data);
+    if (error) {
+      return {
+        status: 400,
+        message: error.details[0].message,
+        success: false,
+      };
+    }
+    const isStaff = [CHEF, ORDERTAKER, MANAGER].includes(data.role);
+    const isOwner = data.role === "OWNER";
+    if (isStaff && !data.outletId) {
+      return {
+        status: 400,
+        message: "Outlet ID is required",
+        success: false,
+      };
+    }
+    if (isStaff && !data.restaurantId) {
+      return {
+        status: 400,
+        message: "Restaurant ID is required",
+        success: false,
+      };
+    }
+    if (isOwner && !data.restaurantId) {
+      return {
+        status: 400,
+        message: "Restaurant ID is required for OWNER role",
+        success: false,
+      };
+    }
+    const user = new User(data);
+    const newUser = await user.save({ session });
+    return {
+      status: 201,
+      message: "User created successfully",
+      success: true,
+      data: newUser,
+    };
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
 
 const loginUser = async (data) => {
   try {
-    console.log("Login data:", data);
-    const { error } = loginSchema.validate(data);
+    const { error } = loginUserSchema.validate(data);
     console.log("Validation error:", error);
     if (error) {
       return {
@@ -16,7 +67,7 @@ const loginUser = async (data) => {
     }
 
     const { email, password } = data;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return {
         status: 401,
@@ -67,5 +118,6 @@ const loginUser = async (data) => {
 };
 
 module.exports = {
+  createUser,
   loginUser,
 };

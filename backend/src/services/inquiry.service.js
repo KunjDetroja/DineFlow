@@ -13,6 +13,16 @@ const createInquiry = async (data) => {
         success: false,
       };
     }
+    const existingInquiry = await Inquiry.findOne({
+      email: data.email,
+    });
+    if (existingInquiry) {
+      return {
+        status: 400,
+        message: "Email already exists",
+        success: false,
+      };
+    }
     const inquiry = new Inquiry(data);
     await inquiry.save();
     return {
@@ -67,10 +77,10 @@ const getAllInquiries = async (req_query) => {
       status: 200,
       message: "Inquiries fetched successfully",
       success: true,
-      data:{
+      data: {
         data: inquiries,
         pagination,
-      }
+      },
     };
   } catch (error) {
     console.error("Error fetching inquiries:", error);

@@ -6,14 +6,14 @@ const successResponse = (res, data, message, status_code = 200) => {
 
 const errorResponse = (res, status_code, message) => {
   console.log("Error:", message);
-  return res.status(status_code).json({ message: message, success: false });
+  return res.status(status_code).json({ message: message, success: false ,status_code: status_code });
 };
 
 const catchResponse = (res) => {
   console.log("Catch Error");
   return res
     .status(500)
-    .json({ message: "Internal Server Error", success: false });
+    .json({ message: "Internal Server Error", success: false, status_code: 500 });
 };
 
 module.exports = {

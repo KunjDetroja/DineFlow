@@ -10,11 +10,6 @@ const restaurantSchema = new mongoose.Schema(
     logo: {
       type: String,
     },
-    ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
   },
   {
     timestamps: true,
