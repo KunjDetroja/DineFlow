@@ -1,11 +1,5 @@
 import * as React from "react";
-import {
-  Bell,
-  Moon,
-  Search,
-  Sun,
-  PanelLeftClose,
-} from "lucide-react";
+import { Bell, Moon, Search, Sun, PanelLeftClose } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "../theme-provider";
+import { useTheme } from "./theme-provider";
 import { useSidebar } from "@/components/ui/sidebar";
 
 export function Header() {
@@ -55,7 +49,7 @@ export function Header() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
@@ -64,21 +58,19 @@ export function Header() {
             className="flex transition-transform duration-200"
             onClick={toggleSidebar}
           >
-            <div className="relative h-5 w-5">
-              <PanelLeftClose
-                className={`absolute h-5 w-5 transition-all duration-200 ${
-                  state === "expanded" ? "rotate-0" : "-rotate-180"
-                }`}
-              />
-            </div>
+            <PanelLeftClose
+              className={`absolute h-5 w-5 transition-all duration-200 ${
+                state === "expanded" ? "rotate-0" : "-rotate-180"
+              }`}
+            />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
-          <div className="relative w-96 md:flex hidden">
-            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-96 md:flex hidden ml-2">
+            <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search..."
-              className="pl-9 max-h-8"
+              className="pl-9 max-h-7"
             />
           </div>
         </div>
@@ -123,7 +115,7 @@ export function Header() {
           </DropdownMenu>
         </div>
       </div>
-      <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
+      <nav className="flex items-center space-x-1 text-sm text-muted-foreground ml-2">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>

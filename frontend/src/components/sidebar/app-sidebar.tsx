@@ -11,9 +11,8 @@ import {
   Calendar,
   FileText,
 } from "lucide-react";
-
-import { NavMain } from "@/components/layout/sidebar/nav-main";
-import { NavUser } from "@/components/layout/sidebar/nav-user";
+import { NavMain } from "@/components/sidebar/nav-main";
+import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -96,13 +95,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
-              <Link to="/admin" className="!w-full flex items-center gap-3">
+              <Link to="/admin" className="!w-full flex items-center gap-3 text-primary">
                 <img
                   src="https://placehold.co/30x30"
                   alt="DineFlow"
                   className="min-w-8 min-h-8 rounded-lg shrink-0"
                 />
-                <span className="text-base font-semibold">DineFlow</span>
+                <span className="text-base font-semibold -mt-0.5">DineFlow</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
