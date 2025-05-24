@@ -35,49 +35,49 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/admin",
+      url: "/",
       icon: LayoutDashboard,
     },
     {
       title: "Table Management",
-      url: "/admin/tables",
+      url: "/tables",
       icon: Table,
     },
     {
       title: "Menu Management",
-      url: "/admin/menu",
+      url: "/menu",
       icon: Menu,
     },
     {
       title: "Dishes Management",
-      url: "/admin/dishes",
+      url: "/dishes",
       icon: Utensils,
     },
     {
       title: "Orders",
-      url: "/admin/orders",
+      url: "/orders",
       icon: ShoppingCart,
     },
     {
       title: "Reservations",
-      url: "/admin/reservations",
+      url: "/reservations",
       icon: Calendar,
     },
     {
       title: "Staff",
-      url: "/admin/staff",
+      url: "/staff",
       icon: Users,
     },
     {
       title: "Reports",
-      url: "/admin/reports",
+      url: "/reports",
       icon: FileText,
     },
   ],
   navSecondary: [
     {
       title: "Settings",
-      url: "/admin/settings",
+      url: "/settings",
       icon: Settings,
     },
     {
@@ -95,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
-              <Link to="/admin" className="!w-full flex items-center gap-3 text-primary">
+              <Link to="/" className="!w-full flex items-center gap-3 text-primary">
                 <img
                   src="https://placehold.co/30x30"
                   alt="DineFlow"

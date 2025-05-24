@@ -27,7 +27,7 @@ function App() {
             <Route path="/inquiry" element={<InquiryForm />} />
             {/* Protected Admin Routes */}
             <Route
-              path="/admin"
+              path="/"
               element={
                 <PrivateRoute>
                   <AdminLayout />
