@@ -25,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { removeEmptyFields } from "@/utils";
 import { useCreateInquiryMutation } from "@/store/services/inquiry.service";
 
-
 type FormData = z.infer<typeof inquirySchema>;
 
 export default function InquiryForm() {
@@ -43,26 +42,26 @@ export default function InquiryForm() {
   async function onSubmit(data: FormData) {
     try {
       const cleanedData = removeEmptyFields(data);
-      const response  = await createInquiry(cleanedData);
-      // if(response.data?.success){
-      //   toast.success(response.data?.message || "");
-      // }else{
-      //   toast.error(response.error?.message || "Failed to submit inquiry");
-      // }
-      console.log("Inquiry submitted:", response);
-      // toast.success("Inquiry submitted successfully!");
-      // form.reset();
+      const response = await createInquiry(cleanedData).unwrap();
+      
+      if (response.success) {
+        toast.success(response.message);
+        form.reset();
+      } else {
+        toast.error(response.message || "Failed to submit inquiry");
+      }
     } catch (error) {
-      toast.error("Failed to submit inquiry. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit inquiry. Please try again.";
+      toast.error(errorMessage);
       console.error("Inquiry submission error:", error);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-2xl space-y-8">
         <div className="text-center">
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="mt-2 text-3xl font-bold tracking-tight">
             Restaurant Inquiry
           </h2>
           <p className="mt-2 text-sm text-gray-600">
