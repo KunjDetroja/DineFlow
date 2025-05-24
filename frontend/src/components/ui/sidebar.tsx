@@ -290,8 +290,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
       title="Toggle Sidebar"
       className={cn(
         "hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] sm:flex",
-        "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
-        "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
+        "in-data-[side=left][data-state=collapsed]_&]:cursor-e-resize in-data-[side=right][data-state=collapsed]_&]:cursor-w-resize",
         "hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
@@ -367,17 +366,70 @@ function SidebarSeparator({
 }
 
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
+  const [activePosition, setActivePosition] = React.useState(0);
+  const [activeHeight, setActiveHeight] = React.useState(0);
+  const [isAnimating, setIsAnimating] = React.useState(false);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  const updateActivePosition = React.useCallback(() => {
+    const activeItem = contentRef.current?.querySelector('[data-active="true"]');
+    if (activeItem && contentRef.current) {
+      setIsAnimating(true);
+      const rect = activeItem.getBoundingClientRect();
+      const contentRect = contentRef.current.getBoundingClientRect();
+      setActivePosition(rect.top - contentRect.top);
+      setActiveHeight(rect.height);
+      setTimeout(() => setIsAnimating(false), 300);
+    }
+  }, []);
+
+  // Update position on mount and when active item changes
+  React.useEffect(() => {
+    updateActivePosition();
+    // Add resize observer to handle window resizing
+    const resizeObserver = new ResizeObserver(updateActivePosition);
+    if (contentRef.current) {
+      resizeObserver.observe(contentRef.current);
+    }
+    return () => resizeObserver.disconnect();
+  }, [updateActivePosition]);
+
+  // Update position when active item changes
+  React.useEffect(() => {
+    const observer = new MutationObserver(updateActivePosition);
+    if (contentRef.current) {
+      observer.observe(contentRef.current, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        attributeFilter: ['data-active']
+      });
+    }
+    return () => observer.disconnect();
+  }, [updateActivePosition]);
+
   return (
     <div
+      ref={contentRef}
       data-slot="sidebar-content"
       data-sidebar="content"
+      data-animating={isAnimating}
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden relative",
         className
       )}
       {...props}
-    />
-  )
+    >
+      {props.children}
+      <div
+        className="absolute -right-0 w-1 bg-primary rounded-l-md transition-all duration-300 ease-in-out"
+        style={{
+          transform: `translateY(${activePosition}px)`,
+          height: `${activeHeight}px`,
+        }}
+      />
+    </div>
+  );
 }
 
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
@@ -457,7 +509,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
       className={cn("flex w-full min-w-0 flex-col gap-1", className)}
       {...props}
     />
-  )
+  );
 }
 
 function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
@@ -472,7 +524,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:font-medium data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:text-primary data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 dark:data-[active=true]:bg-sidebar-foreground/20 dark:data-[active=true]:text-primary data-[active=true]:bg-primary/10 [&>svg]:transition-colors [&>span]:transition-colors group-data-[animating=true]/sidebar-content:transition-none",
   {
     variants: {
       variant: {

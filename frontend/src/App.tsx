@@ -35,6 +35,14 @@ function App() {
               }
             >
               <Route index element={<div>Admin Dashboard</div>} />
+              <Route path="tables" element={<div>Tables</div>} />
+              <Route path="menu" element={<div>Menu</div>} />
+              <Route path="dishes" element={<div>Dishes</div>} />
+              <Route path="orders" element={<div>Orders</div>} />
+              <Route path="reservations" element={<div>Reservations</div>} />
+              <Route path="staff" element={<div>Staff</div>} />
+              <Route path="reports" element={<div>Reports</div>} />
+              <Route path="settings" element={<div>Settings</div>} />
             </Route>
 
             {/* Redirect root to login */}
