@@ -7,6 +7,8 @@ import { Provider } from 'react-redux'
 import { store } from './store'
 import { Toaster } from 'react-hot-toast'
 import InquiryForm from "./pages/inquiry/InquiryForm"
+import AddTable from "./pages/tables/AddTable"
+import EditTable from "./pages/tables/EditTable"
 
 // TODO: Replace with actual auth check
 const isAuthenticated = true
@@ -36,6 +38,8 @@ function App() {
             >
               <Route index element={<div>Admin Dashboard</div>} />
               <Route path="tables" element={<div>Tables</div>} />
+              <Route path="tables/add" element={<AddTable />} />
+              <Route path="tables/edit/:id" element={<EditTable />} />
               <Route path="menu" element={<div>Menu</div>} />
               <Route path="dishes" element={<div>Dishes</div>} />
               <Route path="orders" element={<div>Orders</div>} />
