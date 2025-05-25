@@ -434,7 +434,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
       {props.children}
       <div
         className={cn(
-          "absolute -right-0 w-1 bg-primary rounded-l-md",
+          "absolute -right-0 w-1 dark:bg-primary bg-primary/80 rounded-l-md",
           hasInitialized ? "transition-all duration-300 ease-in-out" : ""
         )}
         style={{
