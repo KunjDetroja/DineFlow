@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { LogoutButton } from "./logout-button"
 
 export function NavSecondary({
   items,
@@ -29,18 +30,22 @@ export function NavSecondary({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton 
-                asChild
-                isActive={location.pathname === item.url}
-                tooltip={item.title}
-              >
-                <Link to={item.url}>
-                  <item.icon />
-                  <span className="ml-1 -mt-0.5">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            item.title === "Logout" ? (
+              <LogoutButton key={item.title} />
+            ) : (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton 
+                  asChild
+                  isActive={location.pathname === item.url}
+                  tooltip={item.title}
+                >
+                  <Link to={item.url}>
+                    <item.icon />
+                    <span className="ml-1 -mt-0.5">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
