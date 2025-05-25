@@ -1,0 +1,48 @@
+/* Theme transition styles */
+:root {
+  --theme-transition-duration: 0.3s;
+}
+
+/* Apply transitions only to theme-related properties */
+.theme-transitioning {
+  --transition-duration: var(--theme-transition-duration);
+  --transition-timing: ease-in-out;
+}
+
+/* Theme-specific transitions */
+.theme-transitioning .bg-background,
+.theme-transitioning .bg-foreground,
+.theme-transitioning .bg-primary,
+.theme-transitioning .bg-secondary,
+.theme-transitioning .bg-muted,
+.theme-transitioning .bg-accent,
+.theme-transitioning .bg-popover,
+.theme-transitioning .bg-card,
+.theme-transitioning .bg-sidebar,
+.theme-transitioning .bg-sidebar-accent {
+  transition: background-color var(--transition-duration) var(--transition-timing);
+}
+
+.theme-transitioning .text-foreground,
+.theme-transitioning .text-primary,
+.theme-transitioning .text-secondary,
+.theme-transitioning .text-muted,
+.theme-transitioning .text-accent,
+.theme-transitioning .text-popover,
+.theme-transitioning .text-card,
+.theme-transitioning .text-sidebar,
+.theme-transitioning .text-sidebar-accent {
+  transition: color var(--transition-duration) var(--transition-timing);
+}
+
+.theme-transitioning .border-border,
+.theme-transitioning .border-input,
+.theme-transitioning .border-ring {
+  transition: border-color var(--transition-duration) var(--transition-timing);
+}
+
+/* Disable theme transitions for specific elements */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none;
+} 
