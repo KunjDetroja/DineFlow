@@ -33,7 +33,7 @@ export function LogoutButton() {
           tooltip="Logout"
           onClick={() => setShowLogoutDialog(true)}
         >
-          <div className="flex items-center gap-2">
+          <div role="button" className="flex items-center gap-2 cursor-pointer">
             <LogOut />
             <span className="ml-1 -mt-0.5">
               Logout
