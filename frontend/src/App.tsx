@@ -9,6 +9,7 @@ import { Toaster } from 'react-hot-toast'
 import InquiryForm from "./pages/inquiry/InquiryForm"
 import AddTable from "./pages/tables/AddTable"
 import EditTable from "./pages/tables/EditTable"
+import Tables from "./pages/tables/Tables"
 
 // TODO: Replace with actual auth check
 const isAuthenticated = true
@@ -37,7 +38,7 @@ function App() {
               }
             >
               <Route index element={<div>Admin Dashboard</div>} />
-              <Route path="tables" element={<div>Tables</div>} />
+              <Route path="tables" element={<Tables />} />
               <Route path="tables/add" element={<AddTable />} />
               <Route path="tables/edit/:id" element={<EditTable />} />
               <Route path="menu" element={<div>Menu</div>} />
