@@ -29,7 +29,7 @@ const createInquirySchema = Joi.object({
     "string.empty": "Name is required.",
   }),
 
-  desc: Joi.string().trim().messages({
+  description: Joi.string().trim().messages({
     "string.base": "Description must be a string.",
   }),
 });

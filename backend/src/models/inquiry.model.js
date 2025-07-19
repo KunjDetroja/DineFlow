@@ -27,7 +27,7 @@ const inquirySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    desc: {
+    description: {
       type: String,
     },
   },
