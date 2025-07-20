@@ -7,6 +7,7 @@ const { checkRole } = require("../middlewares/auth.middleware");
 const { ADMIN } = require("../utils/constant");
 
 router.post("/create", createInquiry);
-router.get("/all", checkRole([ADMIN]), getAllInquiries);
+// router.get("/all", checkRole([ADMIN]), getAllInquiries);
+router.get("/all",  getAllInquiries);
 
 module.exports = router;

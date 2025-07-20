@@ -10,6 +10,7 @@ import InquiryForm from "./pages/inquiry/InquiryForm"
 import AddTable from "./pages/tables/AddTable"
 import EditTable from "./pages/tables/EditTable"
 import Tables from "./pages/tables/Tables"
+import Inquiry from "./pages/inquiry/Inquiry"
 
 // TODO: Replace with actual auth check
 const isAuthenticated = true
@@ -27,7 +28,7 @@ function App() {
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/inquiry" element={<InquiryForm />} />
+            {/* <Route path="/inquiry" element={<InquiryForm />} /> */}
             {/* Protected Admin Routes */}
             <Route
               path="/"
@@ -48,6 +49,7 @@ function App() {
               <Route path="staff" element={<div>Staff</div>} />
               <Route path="reports" element={<div>Reports</div>} />
               <Route path="settings" element={<div>Settings</div>} />
+              <Route path="inquiries" element={<Inquiry />} />
             </Route>
 
             {/* Redirect root to login */}

@@ -18,13 +18,16 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
-    getInquiry: builder.query<baseResponse<getInquiryResponse>, void>({
-      query: () => ({
-        url: "inquiry/all",
+    getAllInquiry: builder.query<
+      baseResponse<getInquiryResponse>,
+      { page?: number; limit?: number }
+    >({
+      query: ({ page = 1, limit = 10 } = {}) => ({
+        url: `inquiry/all?page=${page}&limit=${limit}`,
         method: "GET",
       }),
     }),
   }),
 });
 
-export const { useCreateInquiryMutation, useGetInquiryQuery } = authApi;
+export const { useCreateInquiryMutation, useGetAllInquiryQuery } = authApi;
