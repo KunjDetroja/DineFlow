@@ -35,8 +35,7 @@ const Inquiry = () => {
 
   const { data, isLoading, error } = useGetAllInquiryQuery(filter);
 
-  const [createRestaurant, { isLoading: isCreatingRestaurant }] =
-    useCreateRestaurantFromInquiryMutation();
+  const [createRestaurant, { isLoading: isCreatingRestaurant }] = useCreateRestaurantFromInquiryMutation();
 
   const inquiries = data?.data?.data || [];
 
@@ -225,7 +224,7 @@ const Inquiry = () => {
                       value={filter.status || "all"}
                       onValueChange={handleStatusChange}
                     >
-                      <SelectTrigger className="h-8 dark:bg-transparent">
+                      <SelectTrigger className="h-8 dark:bg-accent">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -258,7 +257,7 @@ const Inquiry = () => {
                     value={filter.search || ""}
                     onChange={handleSearchChange}
                     onClear={() => handleSearchChange("")}
-                    className="min-w-72"
+                    className="min-w-72 h-8"
                   />
                 </div>
               </div>
