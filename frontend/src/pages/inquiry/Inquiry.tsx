@@ -3,48 +3,106 @@ import {
   useGetAllInquiryQuery,
   useCreateRestaurantFromInquiryMutation,
 } from "@/store/services/inquiry.service";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { SearchInput } from "@/components/ui/search-input";
 import { CommonPagination } from "@/components/ui/pagination";
+import { SortableTable, ColumnDef, SortConfig, SortDirection } from "@/components/ui/sortable-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { X } from "lucide-react";
 import MainLayout from "@/layouts/MainLayout";
 
+interface InquiryFilter {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortDirection;
+  search?: string;
+  status?: string;
+  outletRange?: string;
+  dateRange?: string;
+}
+
 const Inquiry = () => {
-  const [filter, setFilter] = useState({});
+  const [filter, setFilter] = useState<InquiryFilter>({});
 
   const { data, isLoading, error } = useGetAllInquiryQuery(filter);
 
   const [createRestaurant, { isLoading: isCreatingRestaurant }] =
     useCreateRestaurantFromInquiryMutation();
 
-  const handlePageChange = async (page: number) => {
-    if (page === 1) {
+  const inquiries = data?.data?.data || [];
+
+  // Derive sortConfig from filter state for UI display
+  const sortConfig: SortConfig = {
+    key: filter.sortBy || "",
+    direction: filter.sortOrder || null,
+  };
+
+  const handleSort = (config: SortConfig) => {
+    console.log("Sort changed:", config);
+
+    // Update filter to include sort for API call
+    setFilter((prev) => ({
+      ...prev,
+      sortBy: config.key,
+      sortOrder: config.direction,
+    }));
+  };
+
+  const handleSearchChange = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      search: value || undefined,
+      page: undefined, // Reset to first page when searching
+    }));
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFilter((prev) => ({
+      ...prev,
+      status: value === "all" ? undefined : value,
+      page: undefined, // Reset to first page when filtering
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setFilter({});
+  };
+
+  const hasActiveFilters = Boolean(
+    filter.search || filter.status || filter.outletRange || filter.dateRange
+  );
+
+  const handlePageChange = async (pageNumber: number) => {
+    if (pageNumber === 1) {
       setFilter((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { page, ...rest } = prev;
         return rest;
       });
     } else {
-      setFilter((prev) => ({ ...prev, page }));
+      setFilter((prev) => ({ ...prev, page: pageNumber }));
     }
   };
 
-  const handleLimitChange = async (limit: number) => {
+  const handleLimitChange = async (limitNumber: number) => {
     handlePageChange(1);
-    if (limit === 10) {
+    if (limitNumber === 10) {
       setFilter((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { limit, ...rest } = prev;
         return rest;
       });
     } else {
-      setFilter((prev) => ({ ...prev, limit }));
+      setFilter((prev) => ({ ...prev, limit: limitNumber }));
     }
   };
 
@@ -62,13 +120,10 @@ const Inquiry = () => {
     return (
       <MainLayout title="Inquiries">
         <Card>
-          <CardHeader>
-            <CardTitle>All Inquiries</CardTitle>
-          </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton key={i} className="h-8 w-full" />
               ))}
             </div>
           </CardContent>
@@ -91,8 +146,62 @@ const Inquiry = () => {
     );
   }
 
-  const inquiries = data?.data?.data || [];
   const pagination = data?.data?.pagination;
+
+  const columns: ColumnDef<any>[] = [
+    {
+      key: "name",
+      header: "Name",
+      sortable: true,
+    },
+    {
+      key: "restaurantName",
+      header: "Restaurant",
+      sortable: true,
+    },
+    {
+      key: "email",
+      header: "Email",
+      sortable: true,
+    },
+    {
+      key: "phone",
+      header: "Phone",
+      sortable: false,
+    },
+    {
+      key: "numberOfOutlets",
+      header: "Outlets",
+      render: (item) => item.numberOfOutlets || "N/A",
+    },
+    {
+      key: "desc",
+      header: "Description",
+      sortable: false,
+      render: (item) => item.desc || "No description",
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      sortable: true,
+      render: (item) => new Date(item.createdAt).toLocaleDateString(),
+    },
+    {
+      key: "action",
+      header: "Action",
+      sortable: false,
+      render: (item) => (
+        <Button
+          onClick={() => handleCreateRestaurant(item._id)}
+          disabled={isCreatingRestaurant}
+          size="sm"
+          variant="outline"
+        >
+          {isCreatingRestaurant ? "Creating..." : "Create Restaurant"}
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <MainLayout title="Inquiries">
@@ -103,68 +212,66 @@ const Inquiry = () => {
           </p>
         </div>
       ) : (
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>All Inquiries ({pagination?.totalItems || 0})</CardTitle>
-          </CardHeader>
+        <Card className="w-full p-2">
           <CardContent className="p-0">
+            {/* Filters */}
+            <div className="p-4">
+              <div className="flex justify-between items-center">
+                <div className="flex gap-4 items-center">
+                  {/* Status Filter */}
+                  <div className="flex gap-2 items-center">
+                    <label>Status</label>
+                    <Select
+                      value={filter.status || "all"}
+                      onValueChange={handleStatusChange}
+                    >
+                      <SelectTrigger className="h-8 dark:bg-transparent">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="contacted">Contacted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-center">
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearFilters}
+                      className="text-xs"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Clear Filters
+                    </Button>
+                  )}
+
+                  {/* Search Filter */}
+                  <SearchInput
+                    placeholder="Search by name, email, or restaurant..."
+                    value={filter.search || ""}
+                    onChange={handleSearchChange}
+                    onClear={() => handleSearchChange("")}
+                    className="min-w-72"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Desktop Table View */}
             <div className="hidden lg:block">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[120px]">Name</TableHead>
-                      <TableHead className="min-w-[150px]">
-                        Restaurant
-                      </TableHead>
-                      <TableHead className="min-w-[200px]">Email</TableHead>
-                      <TableHead className="min-w-[120px]">Phone</TableHead>
-                      <TableHead className="min-w-[80px]">Outlets</TableHead>
-                      <TableHead className="min-w-[200px]">
-                        Description
-                      </TableHead>
-                      <TableHead className="min-w-[100px]">Created</TableHead>
-                      <TableHead className="min-w-[120px]">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {inquiries.map((inquiry) => (
-                      <TableRow key={inquiry._id}>
-                        <TableCell className="font-medium">
-                          {inquiry.name}
-                        </TableCell>
-                        <TableCell>{inquiry.restaurantName}</TableCell>
-                        <TableCell className="break-all">
-                          {inquiry.email}
-                        </TableCell>
-                        <TableCell>{inquiry.phone}</TableCell>
-                        <TableCell>
-                          {inquiry.numberOfOutlets || "N/A"}
-                        </TableCell>
-                        <TableCell className="max-w-[200px] truncate">
-                          {inquiry.desc || "No description"}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(inquiry.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            onClick={() => handleCreateRestaurant(inquiry._id)}
-                            disabled={isCreatingRestaurant}
-                            size="sm"
-                            variant="outline"
-                          >
-                            {isCreatingRestaurant
-                              ? "Creating..."
-                              : "Create Restaurant"}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <SortableTable
+                data={inquiries}
+                columns={columns}
+                sortConfig={sortConfig}
+                onSort={handleSort}
+              />
             </div>
 
             {/* Mobile Card View */}

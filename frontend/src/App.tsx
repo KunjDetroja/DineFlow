@@ -11,7 +11,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Provider } from "react-redux";
 import { store } from "./store";
 import { Toaster } from "react-hot-toast";
-import InquiryForm from "./pages/inquiry/InquiryForm";
 import AddTable from "./pages/tables/AddTable";
 import EditTable from "./pages/tables/EditTable";
 import Tables from "./pages/tables/Tables";
