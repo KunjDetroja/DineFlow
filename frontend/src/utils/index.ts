@@ -9,7 +9,7 @@ export const getFromLocalStorage = (key: string) => {
   }
 };
 
-export const setToLocalStorage = (key: string, value: unknown) => {
+export const saveToLocalStorage = (key: string, value: unknown) => {
   try {
     if (!key) return;
     localStorage.setItem(key, JSON.stringify(value));

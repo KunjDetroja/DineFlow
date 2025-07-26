@@ -1,9 +1,12 @@
 const User = require("../models/user.model");
 const { CHEF, ORDERTAKER, MANAGER } = require("../utils/constant");
-const { loginUserSchema, createUserSchema } = require("../validators/user.validator");
+const {
+  loginUserSchema,
+  createUserSchema,
+} = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
 
-const createUser = async (data,session) => {
+const createUser = async (data, session) => {
   try {
     const { error } = createUserSchema.validate(data);
     if (error) {
@@ -84,9 +87,7 @@ const loginUser = async (data) => {
       };
     }
     const payload = {
-      user: {
-        id: user._id,
-      },
+      id: user._id,
     };
     const tokenExpires = "8d";
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -117,7 +118,27 @@ const loginUser = async (data) => {
   }
 };
 
+const getCurrentUser = async (userId) => {
+  try {
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return { success: false, statusCode: 404, message: "User not found" };
+    }
+
+    return { success: true, statusCode: 200, data: user };
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
 module.exports = {
   createUser,
   loginUser,
+  getCurrentUser,
 };

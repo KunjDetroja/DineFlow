@@ -1,23 +1,23 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
-import { AdminLayout } from "@/layouts/AdminLayout"
-import Login from "@/pages/auth/Login"
-import { Register } from "@/pages/auth/Register"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Provider } from 'react-redux'
-import { store } from './store'
-import { Toaster } from 'react-hot-toast'
-import InquiryForm from "./pages/inquiry/InquiryForm"
-import AddTable from "./pages/tables/AddTable"
-import EditTable from "./pages/tables/EditTable"
-import Tables from "./pages/tables/Tables"
-import Inquiry from "./pages/inquiry/Inquiry"
-
-// TODO: Replace with actual auth check
-const isAuthenticated = true
-
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
-}
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AdminLayout } from "@/layouts/AdminLayout";
+import Login from "@/pages/auth/Login";
+import { Register } from "@/pages/auth/Register";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Provider } from "react-redux";
+import { store } from "./store";
+import { Toaster } from "react-hot-toast";
+import InquiryForm from "./pages/inquiry/InquiryForm";
+import AddTable from "./pages/tables/AddTable";
+import EditTable from "./pages/tables/EditTable";
+import Tables from "./pages/tables/Tables";
+import Inquiry from "./pages/inquiry/Inquiry";
+import PrivateRoute from "./PrivateRoute";
+import RoleGuard from "./RoleGuard";
 
 function App() {
   return (
@@ -49,7 +49,14 @@ function App() {
               <Route path="staff" element={<div>Staff</div>} />
               <Route path="reports" element={<div>Reports</div>} />
               <Route path="settings" element={<div>Settings</div>} />
-              <Route path="inquiries" element={<Inquiry />} />
+              <Route
+                path="inquiries"
+                element={
+                  <RoleGuard requiredRole={["ADMIN"]}>
+                    <Inquiry />
+                  </RoleGuard>
+                }
+              />
             </Route>
 
             {/* Redirect root to login */}
@@ -59,7 +66,7 @@ function App() {
         <Toaster position="top-right" />
       </ThemeProvider>
     </Provider>
-  )
+  );
 }
 
-export default App
+export default App;

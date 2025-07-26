@@ -7,11 +7,14 @@ interface LoginRequest {
 
 interface LoginResponse {
   message: string;
-  token: string;
-  user: {
+  success: boolean;
+  data?: {
     id: string;
     email: string;
     name: string;
+    role: string;
+    token: string;
+    phone: string;
   };
 }
 
@@ -19,7 +22,7 @@ export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
-        url: 'auth/login',
+        url: 'user/login',
         method: 'POST',
         body: credentials,
       }),

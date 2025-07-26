@@ -4,6 +4,7 @@ const {
 const Restaurant = require("../models/restaurant.model");
 const userService = require("./user.service");
 const { OWNER } = require("../utils/constant");
+const { generatePassword } = require("../utils");
 
 const createRestaurant = async (data, session) => {
   try {
@@ -31,8 +32,10 @@ const createRestaurant = async (data, session) => {
     }
     const restaurant = new Restaurant(data.restaurant);
     const newRestaurant = await restaurant.save({ session });
+    const password = generatePassword(8);
     const userData = {
       ...data.user,
+      password: password,
       restaurantId: newRestaurant._id.toString(),
       role: OWNER,
     };

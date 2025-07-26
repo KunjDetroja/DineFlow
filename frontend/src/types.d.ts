@@ -39,3 +39,11 @@ export interface getInquiryResponse {
   data:createInquiryResponse[];
   pagination: pagination;
 }
+
+export interface IUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone: string;
+}

@@ -46,7 +46,7 @@ const createUserSchema = Joi.object({
   outletId: Joi.string().optional().messages({
     "string.empty": "Outlet ID is required.",
   }),
-  restaurantId: Joi.string().optional().messages({
+  restaurantId: Joi.string().messages({
     "string.empty": "Restaurant ID is required.",
   }),
 });

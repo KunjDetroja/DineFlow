@@ -1,5 +1,6 @@
 const Inquiry = require("../models/inquiry.model");
 const { createInquirySchema } = require("../validators/inquiry.validator");
+const { createRestaurant } = require("./restaurant.service");
 
 const createInquiry = async (data) => {
   try {
@@ -92,7 +93,54 @@ const getAllInquiries = async (req_query) => {
   }
 };
 
+const createRestaurantFromInquiry = async (inquiryId, session) => {
+  try {
+    const inquiry = await Inquiry.findById(inquiryId);
+    if (!inquiry) {
+      return {
+        status: 404,
+        message: "Inquiry not found",
+        success: false,
+      };
+    }
+    const restaurant = {
+      name: inquiry.restaurantName,
+    };
+    const user = {
+      name: inquiry.name,
+      email: inquiry.email,
+      phone: inquiry.phone,
+    };
+    const data = {
+      restaurant,
+      user,
+    };
+    const restaurantResponse = await createRestaurant(data, session);
+    if (!restaurantResponse.success) {
+      return {
+        status: restaurantResponse.status,
+        message: restaurantResponse.message,
+        success: false,
+      };
+    }
+    return {
+      status: 201,
+      message: "Restaurant created successfully",
+      success: true,
+      data: restaurantResponse.data,
+    };
+  } catch (error) {
+    console.error("Error creating restaurant from inquiry:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
 module.exports = {
   createInquiry,
   getAllInquiries,
+  createRestaurantFromInquiry,
 };

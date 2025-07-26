@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useGetAllInquiryQuery } from "@/store/services/inquiry.service";
+import {
+  useGetAllInquiryQuery,
+  useCreateRestaurantFromInquiryMutation,
+} from "@/store/services/inquiry.service";
 import {
   Table,
   TableBody,
@@ -10,17 +13,50 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { CommonPagination } from "@/components/ui/pagination";
 import MainLayout from "@/layouts/MainLayout";
 
 const Inquiry = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [filter, setFilter] = useState({});
 
-  const { data, isLoading, error } = useGetAllInquiryQuery({
-    page: currentPage,
-    limit: pageSize,
-  });
+  const { data, isLoading, error } = useGetAllInquiryQuery(filter);
+
+  const [createRestaurant, { isLoading: isCreatingRestaurant }] =
+    useCreateRestaurantFromInquiryMutation();
+
+  const handlePageChange = async (page: number) => {
+    if (page === 1) {
+      setFilter((prev) => {
+        const { page, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setFilter((prev) => ({ ...prev, page }));
+    }
+  };
+
+  const handleLimitChange = async (limit: number) => {
+    handlePageChange(1);
+    if (limit === 10) {
+      setFilter((prev) => {
+        const { limit, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setFilter((prev) => ({ ...prev, limit }));
+    }
+  };
+
+  const handleCreateRestaurant = async (inquiryId: string) => {
+    try {
+      await createRestaurant({ id: inquiryId }).unwrap();
+      alert("Restaurant created successfully!");
+    } catch (error) {
+      console.error("Error creating restaurant:", error);
+      alert("Failed to create restaurant. Please try again.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -58,15 +94,6 @@ const Inquiry = () => {
   const inquiries = data?.data?.data || [];
   const pagination = data?.data?.pagination;
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-  };
-
   return (
     <MainLayout title="Inquiries">
       {inquiries.length === 0 ? (
@@ -98,6 +125,7 @@ const Inquiry = () => {
                         Description
                       </TableHead>
                       <TableHead className="min-w-[100px]">Created</TableHead>
+                      <TableHead className="min-w-[120px]">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -119,6 +147,18 @@ const Inquiry = () => {
                         </TableCell>
                         <TableCell>
                           {new Date(inquiry.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() => handleCreateRestaurant(inquiry._id)}
+                            disabled={isCreatingRestaurant}
+                            size="sm"
+                            variant="outline"
+                          >
+                            {isCreatingRestaurant
+                              ? "Creating..."
+                              : "Create Restaurant"}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -164,6 +204,19 @@ const Inquiry = () => {
                         </div>
                       )}
                     </div>
+                    <div className="mt-3 pt-3 border-t">
+                      <Button
+                        onClick={() => handleCreateRestaurant(inquiry._id)}
+                        disabled={isCreatingRestaurant}
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                      >
+                        {isCreatingRestaurant
+                          ? "Creating..."
+                          : "Create Restaurant"}
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
@@ -174,10 +227,10 @@ const Inquiry = () => {
       {pagination && (
         <CommonPagination
           pagination={pagination}
-          currentPage={currentPage}
-          pageSize={pageSize}
+          currentPage={pagination.currentPage}
+          pageSize={pagination.limit}
           onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
+          onPageSizeChange={handleLimitChange}
         />
       )}
     </MainLayout>

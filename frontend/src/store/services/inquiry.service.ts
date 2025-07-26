@@ -20,14 +20,52 @@ export const authApi = baseApi.injectEndpoints({
     }),
     getAllInquiry: builder.query<
       baseResponse<getInquiryResponse>,
-      { page?: number; limit?: number }
+      { page?: number; limit?: number; search?: string }
     >({
-      query: ({ page = 1, limit = 10 } = {}) => ({
-        url: `inquiry/all?page=${page}&limit=${limit}`,
-        method: "GET",
+      query: (filters) => {
+        const cleanedFilters = Object.entries(filters).reduce(
+          (acc, [key, value]) => {
+            if (
+              value !== "" &&
+              value !== null &&
+              value !== undefined &&
+              value !== "all"
+            ) {
+              acc[key] = value;
+            }
+            return acc;
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {} as { [key: string]: any }
+        );
+        const params = new URLSearchParams(cleanedFilters).toString();
+        if (params) {
+          return {
+            url: `inquiry/all?${params}`,
+            method: "GET",
+          };
+        } else {
+          return {
+            url: `inquiry/all`,
+            method: "GET",
+          };
+        }
+      },
+    }),
+    createRestaurantFromInquiry: builder.mutation<
+      baseResponse<unknown>,
+      { id: string }
+    >({
+      query: ({ id }) => ({
+        url: `inquiry/create-restaurant/${id}`,
+        method: "POST",
       }),
     }),
   }),
 });
 
-export const { useCreateInquiryMutation, useGetAllInquiryQuery } = authApi;
+export const {
+  useCreateInquiryMutation,
+  useGetAllInquiryQuery,
+  useCreateRestaurantFromInquiryMutation,
+} = authApi;
