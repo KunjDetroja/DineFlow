@@ -46,7 +46,7 @@ const checkRole = (allowedRoles) => async (req, res, next) => {
       return errorResponse(res, 401, "Unauthorized: Invalid token");
     }
 
-    const id = decoded.user.id;
+    const id = decodedUser.id;
     const user = await User.findOne({ _id: id });
     if (!user) {
       return errorResponse(res, 404, "User not found");

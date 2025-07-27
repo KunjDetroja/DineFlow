@@ -7,7 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
-import { SortableTable, ColumnDef, SortConfig, SortDirection } from "@/components/ui/sortable-table";
+import {
+  SortableTable,
+  ColumnDef,
+  SortConfig,
+  SortDirection,
+} from "@/components/ui/sortable-table";
 import {
   Select,
   SelectContent,
@@ -36,7 +41,8 @@ const Inquiry = () => {
 
   const { data, isLoading, error } = useGetAllInquiryQuery(filter);
 
-  const [createRestaurant, { isLoading: isCreatingRestaurant }] = useCreateRestaurantFromInquiryMutation();
+  const [createRestaurant, { isLoading: isCreatingRestaurant }] =
+    useCreateRestaurantFromInquiryMutation();
 
   const inquiries = data?.data?.data || [];
 
@@ -47,8 +53,6 @@ const Inquiry = () => {
   };
 
   const handleSort = (config: SortConfig) => {
-    console.log("Sort changed:", config);
-
     // Update filter to include sort for API call
     setFilter((prev) => ({
       ...prev,
@@ -109,10 +113,13 @@ const Inquiry = () => {
   const handleCreateRestaurant = async (inquiryId: string) => {
     try {
       const response = await createRestaurant({ id: inquiryId }).unwrap();
-      console.log("Restaurant created successfully:", response);
-      toast.success(response?.data?.message||"Restaurant created successfully.");
-    } catch (error) {
-      toast.error(error?.data?.message||"Failed to create restaurant. Please try again.")
+      toast.success(
+        response?.data?.message || "Restaurant created successfully."
+      );
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || "Failed to create restaurant. Please try again."
+      );
       console.error("Error creating restaurant:", error);
       // alert(error?.data?.message||"Failed to create restaurant. Please try again.");
     }
@@ -177,10 +184,10 @@ const Inquiry = () => {
       render: (item) => item.numberOfOutlets || "N/A",
     },
     {
-      key: "desc",
+      key: "description",
       header: "Description",
       sortable: false,
-      render: (item) => item.desc || "No description",
+      render: (item) => item.description || "No description",
     },
     {
       key: "createdAt",
@@ -304,12 +311,12 @@ const Inquiry = () => {
                         <span className="font-medium">Outlets: </span>
                         {inquiry.numberOfOutlets || "N/A"}
                       </div>
-                      {inquiry.desc && (
+                      {inquiry.description && (
                         <div>
                           <span className="font-medium">Description: </span>
-                          <p className="mt-1 text-muted-foreground">
-                            {inquiry.desc}
-                          </p>
+                          <span className="mt-1 text-muted-foreground">
+                            {inquiry.description}
+                          </span>
                         </div>
                       )}
                     </div>

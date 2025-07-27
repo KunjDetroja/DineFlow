@@ -21,7 +21,7 @@ export interface createInquiryResponse {
   phone: string;
   name: string;
   _id: string;
-  desc?: string;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,7 +32,7 @@ export interface createInquiryRequest {
   email: string;
   phone: string;
   name: string;
-  desc?: string;
+  description?: string;
 }
 
 export interface getInquiryResponse {

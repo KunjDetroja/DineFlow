@@ -117,7 +117,6 @@ export default function Login() {
       const response = await login(data).unwrap();
       toast.success(response.message || "Login successful");
       navigate("/");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const errorMessage =
         error?.data?.message || "Login failed. Please try again.";
@@ -207,7 +206,7 @@ export default function Login() {
                   />
                   <label
                     htmlFor="remember-me"
-                    className="ml-2 block text-sm text-gray-900"
+                    className="ml-2 block text-sm text-gray-900 dark:text-white"
                   >
                     Remember me
                   </label>

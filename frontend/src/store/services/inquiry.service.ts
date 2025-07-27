@@ -53,7 +53,7 @@ export const authApi = baseApi.injectEndpoints({
       },
     }),
     createRestaurantFromInquiry: builder.mutation<
-      baseResponse<unknown>,
+      baseResponse<any>,
       { id: string }
     >({
       query: ({ id }) => ({

@@ -52,11 +52,8 @@ export default function InquiryForm() {
 
     try {
       const cleanedData = removeEmptyFields(data);
-      console.log("Cleaned data:", cleanedData);
-      console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
 
       const response = await createInquiry(cleanedData);
-      console.log("API response:", response);
 
       if (response.success) {
         toast.success(response.message || "Inquiry submitted successfully!");

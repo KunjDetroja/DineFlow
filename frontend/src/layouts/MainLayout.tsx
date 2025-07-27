@@ -14,7 +14,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ title, buttonTitle, buttonLink,
   return (
     <div className="w-full h-full">
       <div className="flex justify-between items-center pb-4">
-        <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{title}</h1>
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{title}</h1>
         {buttonTitle && buttonLink && (
           <Link to={buttonLink}>
             <Button size='xs'>
