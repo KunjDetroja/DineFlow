@@ -1,3 +1,5 @@
+'use client';
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { inquirySchema } from "@/validator/inquiry.validator";
 import { Button } from "@/components/ui/button";
@@ -19,15 +21,20 @@ import {
 } from "@/components/ui/card";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
-import { removeEmptyFields } from "@/utils";
-import { FileText, Store, Mail, Phone, User } from "lucide-react";
+import { FileText, Store, Mail, Phone, User, Loader2 } from "lucide-react";
 import { Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { removeEmptyFields } from "@/utils";
+import { useState } from "react";
+import { createInquiry } from "@/services/inquiry.api";
 
 type FormData = z.infer<typeof inquirySchema>;
 
 export default function InquiryForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const form = useForm<FormData>({
     resolver: zodResolver(inquirySchema),
     defaultValues: {
@@ -35,29 +42,66 @@ export default function InquiryForm() {
       email: "",
       phone: "",
       name: "",
-      description:"",
+      description: "",
       numberOfOutlets: undefined,
     },
   });
 
   async function onSubmit(data: FormData) {
+    setIsSubmitting(true);
+
     try {
-      console.log("Form data:", data);
-    //   const cleanedData = removeEmptyFields(data);
-    //   const response = await createInquiry(cleanedData).unwrap();
-      
-    //   if (response.success) {
-    //     toast.success(response.message);
-    //     form.reset();
-    //   } else {
-    //     toast.error(response.message || "Failed to submit inquiry");
-    //   }
+      const cleanedData = removeEmptyFields(data);
+      console.log("Cleaned data:", cleanedData);
+      console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+
+      const response = await createInquiry(cleanedData);
+      console.log("API response:", response);
+
+      if (response.success) {
+        toast.success(response.message || "Inquiry submitted successfully!");
+        setIsSubmitted(true);
+        form.reset();
+      } else {
+        toast.error(response.message || "Failed to submit inquiry");
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit inquiry. Please try again.";
       toast.error(errorMessage);
       console.error("Inquiry submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   }
+
+  // Success state
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Thank You!
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              Your partnership inquiry has been submitted successfully. We&apos;ll get back to you within 24-48 hours.
+            </p>
+            <div className="space-y-3">
+              <Button variant="outline" onClick={() => window.location.href = '/'} className="w-full">
+                Back to Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -75,21 +119,28 @@ export default function InquiryForm() {
         </div>
 
         {/* Form Card */}
-        <Card className="border-border shadow-lg">
+        <Card className="border-border shadow-lg relative">
           <CardHeader className="pb-6">
             <CardTitle className="text-xl font-semibold text-card-foreground flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
               Contact Information
             </CardTitle>
             <CardDescription>
-              Fill out the details below and we'll get back to you soon
+              Fill out the details below and we&apos;ll get back to you soon
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <Form {...form}>
-              <div className="space-y-6">
-                
+              <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+                {isSubmitting && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Submitting your inquiry...</span>
+                    </div>
+                  </div>
+                )}
                 {/* Restaurant Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -115,7 +166,7 @@ export default function InquiryForm() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="numberOfOutlets"
@@ -172,7 +223,7 @@ export default function InquiryForm() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="phone"
@@ -186,11 +237,19 @@ export default function InquiryForm() {
                         <FormControl>
                           <Input
                             type="tel"
-                            placeholder="+1 (555) 123-4567"
+                            placeholder="1234567890"
                             className="h-10"
                             {...field}
+                            onChange={(e) => {
+                              // Only allow numbers
+                              const value = e.target.value.replace(/\D/g, '');
+                              field.onChange(value);
+                            }}
                           />
                         </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Enter 7-15 digits (numbers only)
+                        </p>
                         <div className="min-h-[16px]">
                           <FormMessage className="text-xs" />
                         </div>
@@ -198,7 +257,7 @@ export default function InquiryForm() {
                     )}
                   />
                 </div>
-                
+
                 {/* Contact Person */}
                 <FormField
                   control={form.control}
@@ -248,13 +307,21 @@ export default function InquiryForm() {
                 />
 
                 {/* Submit Button */}
-                <Button 
-                  onClick={form.handleSubmit(onSubmit)}
+                <Button
+                  type="submit"
                   className="w-full h-11 font-medium"
+                  disabled={isSubmitting}
                 >
-                  Submit Partnership Inquiry
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Partnership Inquiry"
+                  )}
                 </Button>
-              </div>
+              </form>
             </Form>
           </CardContent>
         </Card>
