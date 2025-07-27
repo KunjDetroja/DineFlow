@@ -3,6 +3,9 @@ import {
   CreateRestaurantRequest,
   CreateRestaurantResponse,
   GetAllRestaurantsResponse,
+  UpdateRestaurantRequest,
+  UpdateRestaurantResponse,
+  IRestaurant,
   baseResponse,
 } from "@/types";
 
@@ -21,7 +24,7 @@ export const restaurantApi = baseApi.injectEndpoints({
     }),
     getAllRestaurants: builder.query<
       baseResponse<GetAllRestaurantsResponse>,
-      { page?: number; limit?: number; search?: string }
+      { page?: number; limit?: number; search?: string; status?: string }
     >({
       query: (filters) => {
         const cleanedFilters = Object.entries(filters).reduce(
@@ -53,8 +56,44 @@ export const restaurantApi = baseApi.injectEndpoints({
       },
       providesTags: ["Restaurant"],
     }),
+    getRestaurantById: builder.query<
+      baseResponse<IRestaurant>,
+      string
+    >({
+      query: (id) => ({
+        url: `restaurant/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["Restaurant"],
+    }),
+    updateRestaurant: builder.mutation<
+      baseResponse<UpdateRestaurantResponse>,
+      { id: string; data: UpdateRestaurantRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `restaurant/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Restaurant"],
+    }),
+    deleteRestaurant: builder.mutation<
+      baseResponse<null>,
+      string
+    >({
+      query: (id) => ({
+        url: `restaurant/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Restaurant"],
+    }),
   }),
 });
 
-export const { useCreateRestaurantMutation, useGetAllRestaurantsQuery } =
-  restaurantApi;
+export const { 
+  useCreateRestaurantMutation, 
+  useGetAllRestaurantsQuery,
+  useGetRestaurantByIdQuery,
+  useUpdateRestaurantMutation,
+  useDeleteRestaurantMutation,
+} = restaurantApi;

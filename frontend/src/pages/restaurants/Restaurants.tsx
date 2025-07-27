@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useGetAllRestaurantsQuery } from "@/store/services/restaurant.service";
+import {
+  useGetAllRestaurantsQuery,
+  useDeleteRestaurantMutation,
+} from "@/store/services/restaurant.service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -17,9 +20,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, Building2, Edit } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { X, Building2, Edit, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import MainLayout from "@/layouts/MainLayout";
 import CustomPagination from "@/components/common/Pagination";
+import UpdateRestaurantDialog from "./UpdateRestaurantDialog";
 import { IRestaurant } from "@/types";
 
 interface RestaurantFilter {
@@ -33,8 +46,15 @@ interface RestaurantFilter {
 
 const Restaurants = () => {
   const [filter, setFilter] = useState<RestaurantFilter>({});
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [restaurantToDelete, setRestaurantToDelete] =
+    useState<IRestaurant | null>(null);
 
   const { data, isLoading, error } = useGetAllRestaurantsQuery(filter);
+  const [deleteRestaurant, { isLoading: isDeleting }] =
+    useDeleteRestaurantMutation();
 
   const restaurants = data?.data?.data || [];
 
@@ -101,8 +121,38 @@ const Restaurants = () => {
   };
 
   const handleEditRestaurant = (restaurantId: string) => {
-    // TODO: Navigate to restaurant edit page
-    console.log("Edit restaurant:", restaurantId);
+    setSelectedRestaurantId(restaurantId);
+    setUpdateDialogOpen(true);
+  };
+
+  const handleCloseUpdateDialog = () => {
+    setUpdateDialogOpen(false);
+    setSelectedRestaurantId("");
+  };
+
+  const handleDeleteRestaurant = (restaurant: IRestaurant) => {
+    setRestaurantToDelete(restaurant);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!restaurantToDelete) return;
+
+    try {
+      await deleteRestaurant(restaurantToDelete._id).unwrap();
+      toast.success(
+        `Restaurant "${restaurantToDelete.name}" deleted successfully`
+      );
+      setDeleteDialogOpen(false);
+      setRestaurantToDelete(null);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete restaurant");
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setRestaurantToDelete(null);
   };
 
   if (isLoading) {
@@ -177,9 +227,17 @@ const Restaurants = () => {
             onClick={() => handleEditRestaurant(item._id)}
             size="sm"
             variant="outline"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
           >
             <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={() => handleDeleteRestaurant(item)}
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ),
@@ -210,8 +268,8 @@ const Restaurants = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="true">Active</SelectItem>
+                      <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -300,10 +358,19 @@ const Restaurants = () => {
                           onClick={() => handleEditRestaurant(restaurant._id)}
                           size="sm"
                           variant="outline"
-                          className="flex-1"
+                          className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteRestaurant(restaurant)}
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
                         </Button>
                       </div>
                     </div>
@@ -330,6 +397,47 @@ const Restaurants = () => {
           handleLimitChange={handleLimitChange}
         />
       )}
+
+      {/* Update Restaurant Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent className="max-w-md">
+          {selectedRestaurantId && (
+            <UpdateRestaurantDialog
+              restaurantId={selectedRestaurantId}
+              onClose={handleCloseUpdateDialog}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Restaurant</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{restaurantToDelete?.name}"? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

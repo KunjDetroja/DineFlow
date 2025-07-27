@@ -82,6 +82,16 @@ export interface GetAllRestaurantsResponse {
   pagination: pagination;
 }
 
+export interface UpdateRestaurantRequest {
+  name?: string;
+  logo?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateRestaurantResponse {
+  restaurant: IRestaurant;
+}
+
 export interface ITable {
   _id: string;
   outletId: string;

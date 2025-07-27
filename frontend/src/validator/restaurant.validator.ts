@@ -32,4 +32,18 @@ export const createRestaurantSchema = z.object({
   }),
 });
 
+export const updateRestaurantSchema = z.object({
+  name: z.string()
+    .min(1, 'Restaurant name is required')
+    .min(2, 'Restaurant name must be at least 2 characters')
+    .max(100, 'Restaurant name must not exceed 100 characters')
+    .trim(),
+  logo: z.string()
+    .url('Please enter a valid logo URL')
+    .optional()
+    .or(z.literal('')),
+  isActive: z.boolean(),
+});
+
 export type CreateRestaurantFormData = z.infer<typeof createRestaurantSchema>;
+export type UpdateRestaurantFormData = z.infer<typeof updateRestaurantSchema>;
