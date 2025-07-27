@@ -5,7 +5,7 @@ import {
   Utensils,
   Menu,
   Table,
-  Settings,
+  // Settings,
   LogOut,
   ShoppingCart,
   Calendar,
@@ -26,14 +26,27 @@ import {
 } from "@/components/ui/sidebar";
 import { NavSecondary } from "./nav-secondary";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const data = {
-  user: {
-    name: "Admin",
-    email: "admin@restaurant.com",
-    avatar: "/avatars/admin.jpg",
-  },
-  navMain: [
+  navSecondary: [
+    // {
+    //   title: "Settings",
+    //   url: "/settings",
+    //   icon: Settings,
+    // },
+    {
+      title: "Logout",
+      url: "/logout",
+      icon: LogOut,
+    },
+  ],
+};
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const userData = useSelector((state: any) => state.user);
+  console.log(userData.data);
+  const navMain = [
     {
       title: "Dashboard",
       url: "/",
@@ -79,22 +92,7 @@ const data = {
       url: "/inquiries",
       icon: MessageSquare,
     },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
-    },
-    {
-      title: "Logout",
-      url: "/logout",
-      icon: LogOut,
-    },
-  ],
-};
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  ];
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -119,11 +117,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData.data} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

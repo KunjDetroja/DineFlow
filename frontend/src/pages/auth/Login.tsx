@@ -21,10 +21,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "react-hot-toast";
 import { useLoginMutation } from "@/store/services/auth.service";
 import { Eye, EyeOff } from "lucide-react";
 import { validatePassword } from "../../validator/login.validator";
+import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();

@@ -16,6 +16,17 @@ const createUser = async (data, session) => {
         success: false,
       };
     }
+
+    // Check if email already exists
+    const existingUser = await User.findOne({ email: data.email });
+    if (existingUser) {
+      return {
+        status: 400,
+        message: "Email already exists",
+        success: false,
+      };
+    }
+
     const isStaff = [CHEF, ORDERTAKER, MANAGER].includes(data.role);
     const isOwner = data.role === "OWNER";
     if (isStaff && !data.outletId) {

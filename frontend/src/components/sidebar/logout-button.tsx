@@ -1,6 +1,6 @@
-import * as React from "react"
-import { LogOut } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import * as React from "react";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import {
   Dialog,
@@ -9,21 +9,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import {
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/slices/user.slice";
 
 export function LogoutButton() {
-  const navigate = useNavigate()
-  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
+  const navigate = useNavigate();
+  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
     // Add your logout logic here
-    navigate("/login")
-  }
+    dispatch(logout());
+    navigate("/login");
+  };
 
   return (
     <>
@@ -35,9 +36,7 @@ export function LogoutButton() {
         >
           <div role="button" className="flex items-center gap-2 cursor-pointer">
             <LogOut />
-            <span className="ml-1 -mt-0.5">
-              Logout
-            </span>
+            <span className="ml-1 -mt-0.5">Logout</span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -47,27 +46,24 @@ export function LogoutButton() {
           <DialogHeader>
             <DialogTitle>Confirm Logout</DialogTitle>
             <DialogDescription>
-              Are you sure you want to logout? You will need to login again to access your account.
+              Are you sure you want to logout? You will need to login again to
+              access your account.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button
               size={"sm"}
-              variant="outline" 
+              variant="outline"
               onClick={() => setShowLogoutDialog(false)}
             >
               Cancel
             </Button>
-            <Button
-              size={"sm"}
-              variant="destructive" 
-              onClick={handleLogout}
-            >
+            <Button size={"sm"} variant="destructive" onClick={handleLogout}>
               Logout
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
-  )
-} 
+  );
+}

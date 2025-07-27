@@ -14,8 +14,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { CommonPagination } from "@/components/ui/pagination";
 import MainLayout from "@/layouts/MainLayout";
+import CustomPagination from "@/components/common/Pagination";
+import { toast } from "sonner";
 
 const Inquiry = () => {
   const [filter, setFilter] = useState({});
@@ -50,11 +51,13 @@ const Inquiry = () => {
 
   const handleCreateRestaurant = async (inquiryId: string) => {
     try {
-      await createRestaurant({ id: inquiryId }).unwrap();
-      alert("Restaurant created successfully!");
+      const response = await createRestaurant({ id: inquiryId }).unwrap();
+      console.log("Restaurant created successfully:", response);
+      toast.success(response?.data?.message||"Restaurant created successfully.");
     } catch (error) {
+      toast.error(error?.data?.message||"Failed to create restaurant. Please try again.")
       console.error("Error creating restaurant:", error);
-      alert("Failed to create restaurant. Please try again.");
+      // alert(error?.data?.message||"Failed to create restaurant. Please try again.");
     }
   };
 
@@ -155,9 +158,7 @@ const Inquiry = () => {
                             size="sm"
                             variant="outline"
                           >
-                            {isCreatingRestaurant
-                              ? "Creating..."
-                              : "Create Restaurant"}
+                          Create Restaurant
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -225,13 +226,21 @@ const Inquiry = () => {
         </Card>
       )}
       {pagination && (
-        <CommonPagination
-          pagination={pagination}
+        <CustomPagination
           currentPage={pagination.currentPage}
-          pageSize={pagination.limit}
+          totalPages={pagination.totalPages}
           onPageChange={handlePageChange}
-          onPageSizeChange={handleLimitChange}
+          limit={pagination.limit}
+          totalItems={pagination.totalItems}
+          handleLimitChange={handleLimitChange}
         />
+        // <CommonPagination
+        //   pagination={pagination}
+        //   currentPage={pagination.currentPage}
+        //   pageSize={pagination.limit}
+        //   onPageChange={handlePageChange}
+        //   onPageSizeChange={handleLimitChange}
+        // />
       )}
     </MainLayout>
   );
