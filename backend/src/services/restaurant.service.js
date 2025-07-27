@@ -69,7 +69,7 @@ const createRestaurant = async (data, session) => {
 
 const getAllRestaurants = async (req_query) => {
   try {
-    const { page = 1, limit = 10, search = "" } = req_query;
+    const { page = 1, limit = 10, search = "", status = "" } = req_query;
     const pageNumber = Number.isInteger(parseInt(page, 10))
       ? parseInt(page, 10)
       : 1;
@@ -82,6 +82,9 @@ const getAllRestaurants = async (req_query) => {
     const searchQuery = {};
     if (search && search.trim() !== "") {
       searchQuery.name = { $regex: search.trim(), $options: "i" };
+    }
+    if (status && status.trim() !== "") {
+      searchQuery.status = status.trim() === "true" ? true : false;
     }
 
     const restaurants = await Restaurant.find(searchQuery)

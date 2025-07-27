@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, Building2, Eye, Edit } from "lucide-react";
+import { X, Building2, Edit } from "lucide-react";
 import MainLayout from "@/layouts/MainLayout";
 import CustomPagination from "@/components/common/Pagination";
 import { IRestaurant } from "@/types";
@@ -73,9 +73,7 @@ const Restaurants = () => {
     setFilter({});
   };
 
-  const hasActiveFilters = Boolean(
-    filter.search || filter.status
-  );
+  const hasActiveFilters = Boolean(filter.search || filter.status);
 
   const handlePageChange = async (pageNumber: number) => {
     if (pageNumber === 1) {
@@ -102,11 +100,6 @@ const Restaurants = () => {
     }
   };
 
-  const handleViewRestaurant = (restaurantId: string) => {
-    // TODO: Navigate to restaurant details page
-    console.log("View restaurant:", restaurantId);
-  };
-
   const handleEditRestaurant = (restaurantId: string) => {
     // TODO: Navigate to restaurant edit page
     console.log("Edit restaurant:", restaurantId);
@@ -121,20 +114,6 @@ const Restaurants = () => {
               {[...Array(5)].map((_, i) => (
                 <Skeleton key={i} className="h-8 w-full" />
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      </MainLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <MainLayout title="Restaurants">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center text-red-500">
-              Error loading restaurants. Please try again.
             </div>
           </CardContent>
         </Card>
@@ -195,14 +174,6 @@ const Restaurants = () => {
       render: (item) => (
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => handleViewRestaurant(item._id)}
-            size="sm"
-            variant="outline"
-            className="h-8 w-8 p-0"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
             onClick={() => handleEditRestaurant(item._id)}
             size="sm"
             variant="outline"
@@ -216,149 +187,139 @@ const Restaurants = () => {
   ];
 
   return (
-    <MainLayout 
-      title="Restaurants" 
+    <MainLayout
+      title="Restaurants"
       buttonTitle="Create Restaurant"
       buttonKey="create-restaurant"
     >
-      {restaurants.length === 0 ? (
-        <div className="w-full h-full flex items-center justify-center">
-          <p className="text-gray-500 dark:text-gray-400">
-            No restaurants available.
-          </p>
-        </div>
-      ) : (
-        <Card className="w-full p-2">
-          <CardContent className="p-0">
-            {/* Filters */}
-            <div className="p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex gap-4 items-center">
-                  {/* Status Filter */}
-                  <div className="flex gap-2 items-center">
-                    <label>Status</label>
-                    <Select
-                      value={filter.status || "all"}
-                      onValueChange={handleStatusChange}
-                    >
-                      <SelectTrigger className="h-8 dark:bg-accent">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 items-center">
-                  {hasActiveFilters && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleClearFilters}
-                      className="text-xs"
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      Clear Filters
-                    </Button>
-                  )}
-
-                  {/* Search Filter */}
-                  <SearchInput
-                    placeholder="Search restaurants..."
-                    value={filter.search || ""}
-                    onChange={handleSearchChange}
-                    onClear={() => handleSearchChange("")}
-                    className="min-w-72 h-8"
-                  />
+      <Card className="w-full p-2">
+        <CardContent className="p-0">
+          {/* Filters */}
+          <div className="p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex gap-4 items-center">
+                {/* Status Filter */}
+                <div className="flex gap-2 items-center">
+                  <label>Status</label>
+                  <Select
+                    value={filter.status || "all"}
+                    onValueChange={handleStatusChange}
+                  >
+                    <SelectTrigger className="h-8 dark:bg-accent">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </div>
 
-            {/* Desktop Table View */}
-            <div className="hidden lg:block">
-              <SortableTable
-                data={restaurants}
-                columns={columns}
-                sortConfig={sortConfig}
-                onSort={handleSort}
-              />
-            </div>
+              <div className="flex gap-4 items-center">
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearFilters}
+                    className="text-xs"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
 
-            {/* Mobile Card View */}
-            <div className="lg:hidden space-y-4 p-4">
-              {restaurants.map((restaurant) => (
-                <Card key={restaurant._id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        {restaurant.logo ? (
-                          <img
-                            src={restaurant.logo}
-                            alt={restaurant.name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Building2 className="w-5 h-5 text-primary" />
+                {/* Search Filter */}
+                <SearchInput
+                  placeholder="Search restaurants..."
+                  value={filter.search || ""}
+                  onChange={handleSearchChange}
+                  onClear={() => handleSearchChange("")}
+                  className="min-w-72 h-8"
+                />
+              </div>
+            </div>
+          </div>
+          {!error ? (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block">
+                <SortableTable
+                  data={restaurants}
+                  columns={columns}
+                  sortConfig={sortConfig}
+                  onSort={handleSort}
+                />
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="lg:hidden space-y-4 p-4">
+                {restaurants.map((restaurant) => (
+                  <Card key={restaurant._id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          {restaurant.logo ? (
+                            <img
+                              src={restaurant.logo}
+                              alt={restaurant.name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Building2 className="w-5 h-5 text-primary" />
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-semibold text-lg">
+                              {restaurant.name}
+                            </h3>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                restaurant.isActive
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                              }`}
+                            >
+                              {restaurant.isActive ? "Active" : "Inactive"}
+                            </span>
                           </div>
-                        )}
-                        <div>
-                          <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              restaurant.isActive
-                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                            }`}
-                          >
-                            {restaurant.isActive ? "Active" : "Inactive"}
-                          </span>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-2 text-sm">
-                      <div>
-                        <span className="font-medium">Created: </span>
-                        {new Date(restaurant.createdAt).toLocaleDateString()}
+
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        <div>
+                          <span className="font-medium">Created: </span>
+                          {new Date(restaurant.createdAt).toLocaleDateString()}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium">Last Updated: </span>
-                        {new Date(restaurant.updatedAt).toLocaleDateString()}
+
+                      <div className="flex gap-2 pt-3 border-t">
+                        <Button
+                          onClick={() => handleEditRestaurant(restaurant._id)}
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2 pt-3 border-t">
-                      <Button
-                        onClick={() => handleViewRestaurant(restaurant._id)}
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                      <Button
-                        onClick={() => handleEditRestaurant(restaurant._id)}
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="p-4">
+              <p className="text-center text-muted-foreground">
+                No restaurants found for the given criteria.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
       {pagination && (
         <CustomPagination
           currentPage={pagination.currentPage}
