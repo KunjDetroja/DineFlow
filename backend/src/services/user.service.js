@@ -1,5 +1,5 @@
 const User = require("../models/user.model");
-const { CHEF, ORDERTAKER, MANAGER } = require("../utils/constant");
+const { CHEF, WAITER, MANAGER } = require("../utils/constant");
 const {
   loginUserSchema,
   createUserSchema,
@@ -27,7 +27,7 @@ const createUser = async (data, session) => {
       };
     }
 
-    const isStaff = [CHEF, ORDERTAKER, MANAGER].includes(data.role);
+    const isStaff = [CHEF, WAITER, MANAGER].includes(data.role);
     const isOwner = data.role === "OWNER";
     if (isStaff && !data.outletId) {
       return {

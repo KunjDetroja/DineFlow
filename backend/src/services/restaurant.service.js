@@ -33,6 +33,7 @@ const createRestaurant = async (data, session) => {
     const restaurant = new Restaurant(data.restaurant);
     const newRestaurant = await restaurant.save({ session });
     const password = generatePassword(8);
+    console.log("Email:", data.user.email, ", Password:", password)
     const userData = {
       ...data.user,
       password: password,

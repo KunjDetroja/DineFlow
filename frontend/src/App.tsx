@@ -37,7 +37,8 @@ function App() {
                 </PrivateRoute>
               }
             >
-              <Route index element={<div>Admin Dashboard</div>} />
+              <Route index element={<div>Dashboard</div>} />
+              <Route path="restaurants" element={<div>Restaurants</div>} />
               <Route path="tables" element={<Tables />} />
               <Route path="tables/add" element={<AddTable />} />
               <Route path="tables/edit/:id" element={<EditTable />} />

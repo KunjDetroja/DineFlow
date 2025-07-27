@@ -2,7 +2,7 @@ const Joi = require("joi");
 const {
   CUSTOMER,
   MANAGER,
-  ORDERTAKER,
+  WAITER,
   OWNER,
   CHEF,
 } = require("../utils/constant");
@@ -36,11 +36,11 @@ const createUserSchema = Joi.object({
     "any.required": "Password is required.",
   }),
   role: Joi.string()
-    .valid(CUSTOMER, MANAGER, ORDERTAKER, OWNER, CHEF)
+    .valid(CUSTOMER, MANAGER, WAITER, OWNER, CHEF)
     .required()
     .messages({
       "any.only":
-        "Role must be one of the following: CUSTOMER, MANAGER, ORDERTAKER, OWNER, CHEF.",
+        "Role must be one of the following: CUSTOMER, MANAGER, WAITER, OWNER, CHEF.",
       "string.empty": "Role is required.",
     }),
   outletId: Joi.string().optional().messages({

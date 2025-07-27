@@ -5,7 +5,7 @@ const {
   ORDER_STATUSES,
   PENDING,
   CUSTOMER,
-  ORDERTAKER,
+  WAITER,
 } = require("../utils/constant");
 
 const subOrderSchema = new mongoose.Schema({
@@ -46,7 +46,7 @@ const orderSchema = new mongoose.Schema(
     },
     orderedBy: {
       type: String,
-      enum: [CUSTOMER, ORDERTAKER],
+      enum: [CUSTOMER, WAITER],
       required: true,
     },
     subOrder: [subOrderSchema],

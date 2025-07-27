@@ -9,7 +9,6 @@ import {
   LogOut,
   ShoppingCart,
   Calendar,
-  FileText,
   MessageSquare,
 } from "lucide-react";
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -27,6 +26,7 @@ import {
 import { NavSecondary } from "./nav-secondary";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { ADMIN, CHEF, MANAGER, OWNER, WAITER } from "@/utils/constant";
 
 const data = {
   navSecondary: [
@@ -45,53 +45,94 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userData = useSelector((state: any) => state.user);
-  console.log(userData.data);
+  const isAdmin = userData?.role === ADMIN;
+  const isOwner = userData?.role === OWNER;
+  const isManager = userData?.role === MANAGER;
+  const isWaiter = userData?.role === WAITER;
+  const isChef = userData?.role === CHEF;
   const navMain = [
     {
       title: "Dashboard",
       url: "/",
       icon: LayoutDashboard,
     },
-    {
-      title: "Table Management",
-      url: "/tables",
-      icon: Table,
-    },
-    {
-      title: "Menu Management",
-      url: "/menu",
-      icon: Menu,
-    },
-    {
-      title: "Dishes Management",
-      url: "/dishes",
-      icon: Utensils,
-    },
-    {
-      title: "Orders",
-      url: "/orders",
-      icon: ShoppingCart,
-    },
-    {
-      title: "Reservations",
-      url: "/reservations",
-      icon: Calendar,
-    },
-    {
-      title: "Staff",
-      url: "/staff",
-      icon: Users,
-    },
-    {
-      title: "Reports",
-      url: "/reports",
-      icon: FileText,
-    },
-    {
-      title: "Inquiries",
-      url: "/inquiries",
-      icon: MessageSquare,
-    },
+    ...(isAdmin
+      ? [
+          {
+            title: "Restaurants",
+            url: "/restaurants",
+            icon: Utensils,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner || isManager || isWaiter || isChef
+      ? [
+          {
+            title: "Tables",
+            url: "/tables",
+            icon: Table,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner || isManager || isWaiter || isChef
+      ? [
+          {
+            title: "Menu",
+            url: "/menu",
+            icon: Menu,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner || isManager || isWaiter || isChef
+      ? [
+          {
+            title: "Dishes",
+            url: "/dishes",
+            icon: Utensils,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner || isManager || isWaiter || isChef
+      ? [
+          {
+            title: "Orders",
+            url: "/orders",
+            icon: ShoppingCart,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner || isManager || isWaiter
+      ? [
+          {
+            title: "Reservations",
+            url: "/reservations",
+            icon: Calendar,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner || isManager
+      ? [
+          {
+            title: "Staff",
+            url: "/staff",
+            icon: Users,
+          },
+        ]
+      : []),
+    // {
+    //   title: "Reports",
+    //   url: "/reports",
+    //   icon: FileText,
+    // },
+    ...(isAdmin
+      ? [
+          {
+            title: "Inquiries",
+            url: "/inquiries",
+            icon: MessageSquare,
+          },
+        ]
+      : []),
   ];
   return (
     <Sidebar collapsible="icon" {...props}>

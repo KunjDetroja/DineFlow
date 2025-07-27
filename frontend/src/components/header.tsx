@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "./theme-provider";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useSelector } from "react-redux";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar, state } = useSidebar();
+  const role = useSelector((state: any) => state.user.role);
 
   return (
     <div className="flex items-center justify-between">
@@ -40,6 +42,7 @@ export function Header() {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <p className="text-sm font-medium">{role}</p>
         <Button variant="ghost" size="icon" className="md:hidden">
           <Search className="h-4 w-4" />
           <span className="sr-only">Search</span>
