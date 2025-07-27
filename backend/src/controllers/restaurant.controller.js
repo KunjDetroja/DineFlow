@@ -50,7 +50,67 @@ const getAllRestaurants = async (req, res) => {
   }
 };
 
+const getRestaurantById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await restaurantService.getRestaurantById(id);
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error fetching restaurant:", error);
+    return catchResponse(res);
+  }
+};
+
+const updateRestaurant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await restaurantService.updateRestaurant(id, req.body);
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error updating restaurant:", error);
+    return catchResponse(res);
+  }
+};
+
+const deleteRestaurant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await restaurantService.deleteRestaurant(id);
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+    return successResponse(
+      res,
+      null,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error deleting restaurant:", error);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   createRestaurant,
   getAllRestaurants,
+  getRestaurantById,
+  updateRestaurant,
+  deleteRestaurant,
 };

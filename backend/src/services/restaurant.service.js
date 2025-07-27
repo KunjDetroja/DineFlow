@@ -1,5 +1,6 @@
 const {
   createRestaurantSchema,
+  updateRestaurantSchema,
 } = require("../validators/restaurant.validator");
 const Restaurant = require("../models/restaurant.model");
 const userService = require("./user.service");
@@ -78,13 +79,13 @@ const getAllRestaurants = async (req_query) => {
       : 10;
     const skip = (pageNumber - 1) * limitNumber;
 
-    // Build search query
-    const searchQuery = {};
+    // Build search query - exclude soft deleted restaurants
+    const searchQuery = { isDeleted: false };
     if (search && search.trim() !== "") {
       searchQuery.name = { $regex: search.trim(), $options: "i" };
     }
     if (status && status.trim() !== "") {
-      searchQuery.status = status.trim() === "true" ? true : false;
+      searchQuery.isActive = status.trim() === "true" ? true : false;
     }
 
     const restaurants = await Restaurant.find(searchQuery)
@@ -131,7 +132,139 @@ const getAllRestaurants = async (req_query) => {
   }
 };
 
+const getRestaurantById = async (id) => {
+  try {
+    if (!id) {
+      return {
+        status: 400,
+        message: "Restaurant ID is required",
+        success: false,
+      };
+    }
+
+    const restaurant = await Restaurant.findOne({ _id: id, isDeleted: false });
+
+    if (!restaurant) {
+      return {
+        status: 404,
+        message: "Restaurant not found",
+        success: false,
+      };
+    }
+
+    return {
+      status: 200,
+      message: "Restaurant fetched successfully",
+      success: true,
+      data: restaurant,
+    };
+  } catch (error) {
+    console.error("Error fetching restaurant:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
+const updateRestaurant = async (id, data) => {
+  try {
+    if (!id) {
+      return {
+        status: 400,
+        message: "Restaurant ID is required",
+        success: false,
+      };
+    }
+
+    const { error } = updateRestaurantSchema.validate(data);
+    if (error) {
+      return {
+        status: 400,
+        message: error.details[0].message,
+        success: false,
+      };
+    }
+
+    const restaurant = await Restaurant.findOne({ _id: id, isDeleted: false });
+
+    if (!restaurant) {
+      return {
+        status: 404,
+        message: "Restaurant not found",
+        success: false,
+      };
+    }
+
+    const updatedRestaurant = await Restaurant.findByIdAndUpdate(
+      id,
+      { ...data },
+      { new: true, runValidators: true }
+    );
+
+    return {
+      status: 200,
+      message: "Restaurant updated successfully",
+      success: true,
+      data: updatedRestaurant,
+    };
+  } catch (error) {
+    console.error("Error updating restaurant:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
+const deleteRestaurant = async (id) => {
+  try {
+    if (!id) {
+      return {
+        status: 400,
+        message: "Restaurant ID is required",
+        success: false,
+      };
+    }
+
+    const restaurant = await Restaurant.findOne({ _id: id, isDeleted: false });
+
+    if (!restaurant) {
+      return {
+        status: 404,
+        message: "Restaurant not found",
+        success: false,
+      };
+    }
+
+    // Soft delete
+    await Restaurant.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { new: true }
+    );
+
+    return {
+      status: 200,
+      message: "Restaurant deleted successfully",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error deleting restaurant:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
 module.exports = {
   createRestaurant,
   getAllRestaurants,
+  getRestaurantById,
+  updateRestaurant,
+  deleteRestaurant,
 };

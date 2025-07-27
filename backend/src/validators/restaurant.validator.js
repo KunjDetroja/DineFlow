@@ -10,6 +10,19 @@ const createRestaurantSchema = Joi.object({
   }),
 });
 
+const updateRestaurantSchema = Joi.object({
+  name: Joi.string().trim().optional().messages({
+    "string.empty": "Name cannot be empty.",
+  }),
+  logo: Joi.string().optional().allow("").messages({
+    "string.empty": "Logo URL cannot be empty.",
+  }),
+  isActive: Joi.boolean().optional().messages({
+    "boolean.base": "Active status must be true or false.",
+  }),
+});
+
 module.exports = {
   createRestaurantSchema,
+  updateRestaurantSchema,
 };
