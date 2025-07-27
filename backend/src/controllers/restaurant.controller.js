@@ -32,6 +32,25 @@ const createRestaurant = async (req, res) => {
   }
 };
 
+const getAllRestaurants = async (req, res) => {
+  try {
+    const response = await restaurantService.getAllRestaurants(req.query);
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error fetching restaurants:", error);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   createRestaurant,
+  getAllRestaurants,
 };

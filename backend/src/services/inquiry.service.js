@@ -63,15 +63,11 @@ const getAllInquiries = async (req_query) => {
       };
     }
     const totalPages = Math.ceil(totalInquiries / limitNumber);
-    const hasNextPage = pageNumber < totalPages;
-    const hasPrevPage = pageNumber > 1;
     const pagination = {
       totalItems: totalInquiries,
       totalPages,
       currentPage: pageNumber,
       limit: limitNumber,
-      hasNextPage,
-      hasPrevPage,
     };
 
     return {

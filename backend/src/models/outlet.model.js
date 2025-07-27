@@ -9,20 +9,40 @@ const outletSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     address: {
       type: String,
       required: true,
     },
-    phone: {
+    city: {
       type: String,
       required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+    pincode: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      // required: true,
     },
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -10,6 +10,14 @@ const restaurantSchema = new mongoose.Schema(
     logo: {
       type: String,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
