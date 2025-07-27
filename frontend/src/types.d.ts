@@ -81,3 +81,32 @@ export interface GetAllRestaurantsResponse {
   data: IRestaurant[];
   pagination: pagination;
 }
+
+export interface ITable {
+  _id: string;
+  outletId: string;
+  tableNumber: number;
+  isOccupied: boolean;
+  currentOrder?: string;
+  createdAt: string;
+  updatedAt: string;
+  outlet?: {
+    _id: string;
+    name: string;
+    restaurantId: string;
+  };
+}
+
+export interface CreateTableRequest {
+  outletId: string;
+  tableNumber: number;
+}
+
+export interface CreateTableResponse {
+  table: ITable;
+}
+
+export interface GetAllTablesResponse {
+  data: ITable[];
+  pagination: pagination;
+}

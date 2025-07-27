@@ -10,13 +10,13 @@ import { Register } from "@/pages/auth/Register";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Provider } from "react-redux";
 import { store } from "./store";
-import InquiryForm from "./pages/inquiry/InquiryForm";
-import AddTable from "./pages/tables/AddTable";
+
 import EditTable from "./pages/tables/EditTable";
 import Tables from "./pages/tables/Tables";
 import Inquiry from "./pages/inquiry/Inquiry";
 import PrivateRoute from "./PrivateRoute";
 import RoleGuard from "./RoleGuard";
+import Restaurants from "./pages/restaurants/Restaurants";
 
 function App() {
   return (
@@ -27,7 +27,6 @@ function App() {
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            {/* <Route path="/inquiry" element={<InquiryForm />} /> */}
             {/* Protected Admin Routes */}
             <Route
               path="/"
@@ -38,9 +37,15 @@ function App() {
               }
             >
               <Route index element={<div>Dashboard</div>} />
-              <Route path="restaurants" element={<div>Restaurants</div>} />
+              <Route
+                path="restaurants"
+                element={
+                  <RoleGuard requiredRole={["ADMIN"]}>
+                    <Restaurants />
+                  </RoleGuard>
+                }
+              />
               <Route path="tables" element={<Tables />} />
-              <Route path="tables/add" element={<AddTable />} />
               <Route path="tables/edit/:id" element={<EditTable />} />
               <Route path="menu" element={<div>Menu</div>} />
               <Route path="dishes" element={<div>Dishes</div>} />
