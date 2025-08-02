@@ -4,6 +4,31 @@ const {
   successResponse,
   catchResponse,
 } = require("../utils/response");
+const mongoose = require("mongoose");
+
+const createUser = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const response = await userService.createUser(req.body, session);
+    if (!response.success) {
+      await session.abortTransaction();
+      return errorResponse(res, response.status, response.message);
+    }
+    await session.commitTransaction();
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return catchResponse(res);
+  } finally {
+    session.endSession();
+  }
+};
 
 const loginUser = async (req, res) => {
   try {
@@ -128,6 +153,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
+  createUser,
   loginUser,
   getCurrentUser,
   getAllUsers,
