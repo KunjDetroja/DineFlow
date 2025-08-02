@@ -211,7 +211,6 @@ const CreateRestaurantDialog: React.FC<CreateRestaurantDialogProps> = ({
   const [restaurantData, setRestaurantData] = useState<RestaurantStepData | null>(null);
 
   const handleRestaurantNext = (data: RestaurantStepData) => {
-    console.log('Restaurant form submitted:', data);
     setRestaurantData(data);
     setCurrentStep(2);
   };
@@ -277,21 +276,36 @@ const CreateRestaurantDialog: React.FC<CreateRestaurantDialogProps> = ({
       </DialogHeader>
 
       {/* Step Indicator */}
-      <div className="flex items-center justify-center space-x-4">
-        <div className={`flex items-center gap-2 ${currentStep === 1 ? 'text-blue-600' : 'text-green-600'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 1 ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+      <div className="flex items-center justify-center space-x-6 py-6">
+        <div className="flex items-center space-x-3">
+          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-medium ${currentStep === 1
+              ? 'border-blue-500 bg-blue-500 text-white'
+              : currentStep > 1
+                ? 'border-green-500 bg-green-500 text-white'
+                : 'border-gray-300 text-gray-400'
             }`}>
-            1
+            {currentStep > 1 ? '✓' : '1'}
           </div>
-          <span className="text-sm font-medium">Restaurant</span>
+          <span className={`text-sm ${currentStep >= 1 ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+            }`}>
+            Restaurant
+          </span>
         </div>
-        <div className="w-8 h-px bg-gray-300"></div>
-        <div className={`flex items-center gap-2 ${currentStep === 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 2 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+
+        <div className={`w-12 h-0.5 ${currentStep > 1 ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
+          }`} />
+
+        <div className="flex items-center space-x-3">
+          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-medium ${currentStep === 2
+              ? 'border-blue-500 bg-blue-500 text-white'
+              : 'border-gray-300 text-gray-400'
             }`}>
             2
           </div>
-          <span className="text-sm font-medium">Owner</span>
+          <span className={`text-sm ${currentStep === 2 ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+            }`}>
+            Owner
+          </span>
         </div>
       </div>
 
