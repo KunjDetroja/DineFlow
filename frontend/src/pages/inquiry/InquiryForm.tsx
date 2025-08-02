@@ -18,13 +18,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { toast } from "react-hot-toast";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
 import { removeEmptyFields } from "@/utils";
 import { useCreateInquiryMutation } from "@/store/services/inquiry.service";
 import { FileText, Store, Mail, Phone, User } from "lucide-react";
 import { Building2 } from "lucide-react";
+import { toast } from "sonner";
 
 type FormData = z.infer<typeof inquirySchema>;
 

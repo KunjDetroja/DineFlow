@@ -182,9 +182,9 @@ const Outlets = () => {
           <div>
             <span className="font-medium">{item.name}</span>
             <div className="text-xs text-gray-500">
-              {typeof item.restaurantId === 'object' 
-                ? item.restaurantId.name 
-                : 'Unknown Restaurant'}
+              {typeof item.restaurantId === "object"
+                ? item.restaurantId.name
+                : "Unknown Restaurant"}
             </div>
           </div>
         </div>
@@ -354,9 +354,9 @@ const Outlets = () => {
                               {outlet.name}
                             </h3>
                             <div className="text-sm text-gray-500">
-                              {typeof outlet.restaurantId === 'object' 
-                                ? outlet.restaurantId.name 
-                                : 'Unknown Restaurant'}
+                              {typeof outlet.restaurantId === "object"
+                                ? outlet.restaurantId.name
+                                : "Unknown Restaurant"}
                             </div>
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${

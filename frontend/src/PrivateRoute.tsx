@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getFromLocalStorage } from "./utils";
 import { useGetProfileQuery } from "./store/services/user.service";
-import { logout, setUserDetails } from "./store/slices/user.slice";
+import { setUserDetails } from "./store/slices/user.slice";
 import Loading from "./Loading";
 import { RootState } from "./store";
+import { logoutUser } from "./store/slices/logout.actions";
 
 interface PrivateRouteProps {
   children: ReactNode;
@@ -27,7 +28,7 @@ function PrivateRoute({ children }: PrivateRouteProps) {
   useEffect(() => {
     if (isError) {
       console.warn("Invalid or expired token. Logging out...");
-      dispatch(logout());
+      dispatch(logoutUser());
       navigate("/login");
     }
     if (!isAuthenticated && userData) {
@@ -36,7 +37,7 @@ function PrivateRoute({ children }: PrivateRouteProps) {
 
     // If no token is found or the user is not authenticated, navigate to login
     if (!token && !isLoading) {
-      dispatch(logout());
+      dispatch(logoutUser());
       navigate("/login");
     }
   }, [

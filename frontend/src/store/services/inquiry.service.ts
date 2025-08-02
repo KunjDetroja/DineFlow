@@ -6,7 +6,7 @@ import {
 } from "@/types";
 import { baseApi } from "./baseApi.service";
 
-export const authApi = baseApi.injectEndpoints({
+export const inquiryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createInquiry: builder.mutation<
       baseResponse<createInquiryResponse>,
@@ -68,4 +68,4 @@ export const {
   useCreateInquiryMutation,
   useGetAllInquiryQuery,
   useCreateRestaurantFromInquiryMutation,
-} = authApi;
+} = inquiryApi;

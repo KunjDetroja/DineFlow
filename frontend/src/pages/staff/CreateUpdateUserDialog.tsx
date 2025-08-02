@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSelector } from "react-redux";
 import {
   useGetUserByIdQuery,
   useUpdateUserMutation,
   useCreateUserMutation,
 } from "@/store/services/user.service";
 import { useGetAllRestaurantsQuery } from "@/store/services/restaurant.service";
+import { useGetAllOutletsQuery } from "@/store/services/outlet.service";
 import {
   DialogHeader,
   DialogTitle,
@@ -31,7 +33,8 @@ import {
   CreateUserFormData,
   UpdateUserFormData,
 } from "@/validator/user.validator";
-import { ROLES, OWNER, MANAGER, CHEF, WAITER } from "@/utils/constant";
+import { ROLES, OWNER, MANAGER, CHEF, WAITER, ADMIN } from "@/utils/constant";
+import { RootState } from "@/store";
 
 interface CreateUpdateUserDialogProps {
   userId?: string; // If provided, it's update mode; if not, it's create mode
@@ -44,6 +47,19 @@ const CreateUpdateUserDialog = ({
 }: CreateUpdateUserDialogProps) => {
   const isUpdateMode = Boolean(userId);
 
+  // Get current user from Redux store
+  const currentUser = useSelector((state: RootState) => state.user.data);
+  console.log("currentUser", currentUser);
+  const currentUserRole = currentUser?.role;
+  const currentUserRestaurantId =
+    typeof currentUser?.restaurantId === "object" && currentUser?.restaurantId
+      ? currentUser.restaurantId._id
+      : currentUser?.restaurantId;
+  const currentUserOutletId =
+    typeof currentUser?.outletId === "object" && currentUser?.outletId
+      ? currentUser.outletId._id
+      : currentUser?.outletId;
+
   const { data: userData, isLoading: isLoadingUser } = useGetUserByIdQuery(
     userId!,
     {
@@ -53,7 +69,10 @@ const CreateUpdateUserDialog = ({
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const { data: restaurantsData } = useGetAllRestaurantsQuery({});
+  const { data: outletsData } = useGetAllOutletsQuery({});
+
   const restaurants = restaurantsData?.data?.data || [];
+  const outlets = outletsData?.data?.data || [];
 
   const user = userData?.data;
   const isLoading = isUpdating || isCreating;
@@ -79,11 +98,67 @@ const CreateUpdateUserDialog = ({
     },
   });
 
-  // Mock outlets data - in real app, you'd fetch this based on selected restaurant
-  const outlets = [
-    { _id: "1", name: "Main Branch" },
-    { _id: "2", name: "Downtown Branch" },
-  ];
+  // Role hierarchy: ADMIN > OWNER > MANAGER > OTHER
+  const getRoleHierarchy = (role: string): number => {
+    switch (role) {
+      case ADMIN:
+        return 4;
+      case OWNER:
+        return 3;
+      case MANAGER:
+        return 2;
+      default:
+        return 1; // CHEF, WAITER, etc.
+    }
+  };
+
+  // Get allowed roles based on current user's role
+  const getAllowedRoles = (): string[] => {
+    if (!currentUserRole) return [];
+
+    const currentHierarchy = getRoleHierarchy(currentUserRole);
+
+    return ROLES.filter((role) => {
+      if (role === "CUSTOMER") return false; // Never allow creating customers
+      if (role === ADMIN) return false; // Never allow creating ADMIN users
+
+      const roleHierarchy = getRoleHierarchy(role);
+      return roleHierarchy <= currentHierarchy;
+    });
+  };
+
+  const allowedRoles = getAllowedRoles();
+
+  // Determine if restaurant/outlet fields should be shown based on current user role
+  const shouldShowRestaurantField = (selectedRole: string): boolean => {
+    if (!selectedRole) return false;
+
+    // ADMIN can select any restaurant
+    if (currentUserRole === ADMIN) {
+      return [OWNER, MANAGER, CHEF, WAITER].includes(selectedRole);
+    }
+
+    // OWNER and MANAGER use their own restaurant/outlet, so no selection needed
+    return false;
+  };
+
+  const shouldShowOutletField = (selectedRole: string): boolean => {
+    if (!selectedRole) return false;
+
+    // ADMIN can select any outlet for MANAGER, CHEF, WAITER
+    if (currentUserRole === ADMIN) {
+      return [MANAGER, CHEF, WAITER].includes(selectedRole);
+    }
+
+    // OWNER can select outlet for MANAGER, CHEF, WAITER
+    if (currentUserRole === OWNER) {
+      return [MANAGER, CHEF, WAITER].includes(selectedRole);
+    }
+
+    // MANAGER uses their own outlet, so no selection needed
+    return false;
+  };
+
   useEffect(() => {
     if (isUpdateMode && user) {
       const restaurantId =
@@ -107,16 +182,87 @@ const CreateUpdateUserDialog = ({
     }
   }, [user, reset, isUpdateMode]);
 
+  // Auto-set restaurant and outlet IDs based on current user role and selected role
+  const selectedRole = watch("role");
+  useEffect(() => {
+    if (!isUpdateMode && selectedRole) {
+      const updates: any = {};
+
+      // Set restaurant ID based on current user role
+      if (currentUserRole === OWNER || currentUserRole === MANAGER) {
+        if ([OWNER, MANAGER, CHEF, WAITER].includes(selectedRole)) {
+          updates.restaurantId = currentUserRestaurantId || "";
+        }
+      }
+
+      // Set outlet ID based on current user role
+      if (currentUserRole === MANAGER) {
+        if ([MANAGER, CHEF, WAITER].includes(selectedRole)) {
+          updates.outletId = currentUserOutletId || "";
+        }
+      }
+
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        Object.entries(updates).forEach(([key, value]) => {
+          reset((prev) => ({ ...prev, [key]: value }));
+        });
+      }
+    }
+  }, [
+    selectedRole,
+    currentUserRole,
+    currentUserRestaurantId,
+    currentUserOutletId,
+    isUpdateMode,
+    reset,
+  ]);
+
   const onSubmit = async (data: any) => {
+    // Validate role hierarchy
+    if (!isUpdateMode && data.role && !allowedRoles.includes(data.role)) {
+      toast.error("You don't have permission to create this role");
+      return;
+    }
+
+    // Auto-set restaurant and outlet IDs based on current user role
+    if (!isUpdateMode) {
+      // If current user is OWNER or MANAGER, set their restaurant ID
+      if (
+        (currentUserRole === OWNER || currentUserRole === MANAGER) &&
+        [OWNER, MANAGER, CHEF, WAITER].includes(data.role)
+      ) {
+        data.restaurantId = currentUserRestaurantId;
+      }
+
+      // If current user is MANAGER, set their outlet ID for lower roles
+      if (
+        currentUserRole === MANAGER &&
+        [MANAGER, CHEF, WAITER].includes(data.role)
+      ) {
+        data.outletId = currentUserOutletId;
+      }
+    }
+
+    // Remove empty string values from data
+    const cleanedData = Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => value !== "")
+    );
+
+    // If role is OWNER, remove outletId as it's not needed
+    if (cleanedData.role === OWNER) {
+      delete cleanedData.outletId;
+    }
+
     try {
       if (isUpdateMode) {
         await updateUser({
           id: userId!,
-          data: data as UpdateUserFormData,
+          data: cleanedData as UpdateUserFormData,
         }).unwrap();
         toast.success("Staff member updated successfully");
       } else {
-        await createUser(data as CreateUserFormData).unwrap();
+        await createUser(cleanedData as CreateUserFormData).unwrap();
         toast.success("Staff member created successfully");
       }
       reset();
@@ -136,8 +282,8 @@ const CreateUpdateUserDialog = ({
           <DialogTitle>Update Staff Member</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="space-y-2">
+          {[...Array(6)].map((_, index) => (
+            <div key={index} className="space-y-2">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-10 w-full" />
             </div>
@@ -160,13 +306,9 @@ const CreateUpdateUserDialog = ({
     );
   }
 
-  const selectedRole = watch("role");
-  const requiresOutlet = selectedRole
-    ? [MANAGER, CHEF, WAITER].includes(selectedRole)
-    : false;
-  const requiresRestaurant = selectedRole
-    ? [OWNER, MANAGER, CHEF, WAITER].includes(selectedRole)
-    : false;
+  // Determine which fields to show based on current user role and selected role
+  const showRestaurantField = shouldShowRestaurantField(selectedRole);
+  const showOutletField = shouldShowOutletField(selectedRole);
 
   return (
     <>
@@ -229,10 +371,12 @@ const CreateUpdateUserDialog = ({
               type="password"
               {...register("password")}
               placeholder="Enter password"
-              className={errors.password ? "border-red-500" : ""}
+              className={(errors as any).password ? "border-red-500" : ""}
             />
-            {errors.password && (
-              <p className="text-sm text-red-500">{errors.password.message}</p>
+            {(errors as any).password && (
+              <p className="text-sm text-red-500">
+                {(errors as any).password.message}
+              </p>
             )}
           </div>
         )}
@@ -249,7 +393,7 @@ const CreateUpdateUserDialog = ({
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ROLES.filter((role) => role !== "CUSTOMER").map((role) => (
+                  {allowedRoles.map((role) => (
                     <SelectItem key={role} value={role}>
                       {role}
                     </SelectItem>
@@ -261,10 +405,24 @@ const CreateUpdateUserDialog = ({
           {errors.role && (
             <p className="text-sm text-red-500">{errors.role.message}</p>
           )}
+          {!isUpdateMode && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">
+                As a {currentUserRole}, you can create:{" "}
+                {allowedRoles.join(", ")}
+              </p>
+              {(currentUserRole === OWNER || currentUserRole === MANAGER) && (
+                <p className="text-xs text-blue-600">
+                  Restaurant and outlet will be automatically assigned based on
+                  your access
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Restaurant - Required for OWNER, MANAGER, CHEF, WAITER */}
-        {requiresRestaurant && (
+        {/* Restaurant - Only show for ADMIN */}
+        {showRestaurantField && (
           <div className="space-y-2">
             <Label htmlFor="restaurantId">Restaurant</Label>
             <Controller
@@ -295,8 +453,21 @@ const CreateUpdateUserDialog = ({
           </div>
         )}
 
-        {/* Outlet - Required for MANAGER, CHEF, WAITER */}
-        {requiresOutlet && watch("restaurantId") && (
+        {/* Show restaurant info when it's auto-assigned */}
+        {!showRestaurantField &&
+          selectedRole &&
+          [OWNER, MANAGER, CHEF, WAITER].includes(selectedRole) &&
+          (currentUserRole === OWNER || currentUserRole === MANAGER) && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700">
+                <strong>Restaurant:</strong> Will be automatically assigned to
+                your restaurant
+              </p>
+            </div>
+          )}
+
+        {/* Outlet - Only show for ADMIN and OWNER */}
+        {showOutletField && (
           <div className="space-y-2">
             <Label htmlFor="outletId">Outlet</Label>
             <Controller
@@ -325,6 +496,29 @@ const CreateUpdateUserDialog = ({
           </div>
         )}
 
+        {/* Show outlet info when it's auto-assigned */}
+        {!showOutletField &&
+          selectedRole &&
+          [MANAGER, CHEF, WAITER].includes(selectedRole) &&
+          currentUserRole === MANAGER && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700">
+                <strong>Outlet:</strong> Will be automatically assigned to your
+                outlet
+              </p>
+            </div>
+          )}
+
+        {/* Show note when OWNER is selected */}
+        {selectedRole === OWNER && (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              <strong>Note:</strong> Owners have access to all outlets within
+              their restaurant, so outlet selection is not required.
+            </p>
+          </div>
+        )}
+
         {/* Active Status - Only show in update mode */}
         {isUpdateMode && (
           <div className="flex items-center space-x-2">
@@ -334,7 +528,7 @@ const CreateUpdateUserDialog = ({
               render={({ field }) => (
                 <Switch
                   id="isActive"
-                  checked={field.value}
+                  checked={Boolean(field.value)}
                   onCheckedChange={field.onChange}
                 />
               )}

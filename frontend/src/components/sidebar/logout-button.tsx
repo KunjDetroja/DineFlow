@@ -12,17 +12,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { logoutUser } from "@/store/slices/logout.actions";
 import { useDispatch } from "react-redux";
-import { logout } from "@/store/slices/user.slice";
 
 export function LogoutButton() {
   const navigate = useNavigate();
   const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
 
   const handleLogout = () => {
     // Add your logout logic here
-    dispatch(logout());
+    dispatch(logoutUser());
     navigate("/login");
   };
 

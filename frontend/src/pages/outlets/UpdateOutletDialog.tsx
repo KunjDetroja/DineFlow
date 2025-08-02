@@ -30,7 +30,8 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
   outletId,
   onClose,
 }) => {
-  const { data: outletData, isLoading: isLoadingOutlet } = useGetOutletByIdQuery(outletId);
+  const { data: outletData, isLoading: isLoadingOutlet } =
+    useGetOutletByIdQuery(outletId);
   const [updateOutlet, { isLoading: isUpdating }] = useUpdateOutletMutation();
 
   const outlet = outletData?.data;
@@ -95,8 +96,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
       }
     } catch (error: any) {
       console.error("Error updating outlet:", error);
-      const errorMessage =
-        error?.data?.message || "Failed to update outlet";
+      const errorMessage = error?.data?.message || "Failed to update outlet";
       toast.error(errorMessage);
     }
   };
@@ -129,9 +129,10 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
     );
   }
 
-  const restaurantName = typeof outlet.restaurantId === 'object' 
-    ? outlet.restaurantId.name 
-    : 'Unknown Restaurant';
+  const restaurantName =
+    typeof outlet.restaurantId === "object"
+      ? outlet.restaurantId.name
+      : "Unknown Restaurant";
 
   return (
     <div className="space-y-6">
@@ -162,9 +163,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
               className={errors.name ? "border-red-500" : ""}
             />
             {errors.name && (
-              <p className="text-sm text-red-500">
-                {errors.name.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.name.message}</p>
             )}
           </div>
 
@@ -180,9 +179,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
               className={errors.phone ? "border-red-500" : ""}
             />
             {errors.phone && (
-              <p className="text-sm text-red-500">
-                {errors.phone.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.phone.message}</p>
             )}
           </div>
 
@@ -212,9 +209,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
               className={errors.address ? "border-red-500" : ""}
             />
             {errors.address && (
-              <p className="text-sm text-red-500">
-                {errors.address.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.address.message}</p>
             )}
           </div>
 
@@ -228,9 +223,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
                 className={errors.city ? "border-red-500" : ""}
               />
               {errors.city && (
-                <p className="text-sm text-red-500">
-                  {errors.city.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.city.message}</p>
               )}
             </div>
 
@@ -243,9 +236,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
                 className={errors.state ? "border-red-500" : ""}
               />
               {errors.state && (
-                <p className="text-sm text-red-500">
-                  {errors.state.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.state.message}</p>
               )}
             </div>
           </div>
@@ -260,9 +251,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
                 className={errors.country ? "border-red-500" : ""}
               />
               {errors.country && (
-                <p className="text-sm text-red-500">
-                  {errors.country.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.country.message}</p>
               )}
             </div>
 
@@ -275,9 +264,7 @@ const UpdateOutletDialog: React.FC<UpdateOutletDialogProps> = ({
                 className={errors.pincode ? "border-red-500" : ""}
               />
               {errors.pincode && (
-                <p className="text-sm text-red-500">
-                  {errors.pincode.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.pincode.message}</p>
               )}
             </div>
           </div>
