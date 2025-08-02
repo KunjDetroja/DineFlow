@@ -2,6 +2,7 @@ import React from "react";
 import AddTableDialog from "@/pages/tables/AddTableDialog";
 import CreateRestaurantDialog from "@/pages/restaurants/CreateRestaurantDialog";
 import CreateUpdateUserDialog from "@/pages/staff/CreateUpdateUserDialog";
+import CreateOutletDialog from "@/pages/outlets/CreateOutletDialog";
 
 export interface DialogConfig {
   component: React.ComponentType<{ onClose: () => void }>;
@@ -17,9 +18,13 @@ export const dialogRegistry: Record<string, DialogConfig> = {
     component: CreateRestaurantDialog,
     maxWidth: "sm:max-w-[600px]"
   },
-  "create-staff":{
+  "create-staff": {
     component: CreateUpdateUserDialog,
     maxWidth: "sm:max-w-[600px]"
+  },
+  "create-outlet": {
+    component: CreateOutletDialog,
+    maxWidth: "sm:max-w-[700px]"
   }
   // Add more dialogs here as needed
   // "add-menu-item": {

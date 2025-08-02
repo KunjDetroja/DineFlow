@@ -163,3 +163,59 @@ export interface UpdateUserRequest {
   outletId?: string;
   isActive?: boolean;
 }
+
+// Outlet related interfaces
+export interface IOutlet {
+  _id: string;
+  restaurantId: string | {
+    _id: string;
+    name: string;
+    logo?: string;
+  };
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+  phone?: string;
+  isActive: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOutletRequest {
+  restaurantId?: string; // Optional for admin, not needed for owner
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+  phone?: string;
+}
+
+export interface CreateOutletResponse {
+  outlet: IOutlet;
+}
+
+export interface GetAllOutletsResponse {
+  data: IOutlet[];
+  pagination: pagination;
+}
+
+export interface UpdateOutletRequest {
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  phone?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateOutletResponse {
+  outlet: IOutlet;
+}

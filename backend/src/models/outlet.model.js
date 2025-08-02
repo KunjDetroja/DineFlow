@@ -9,7 +9,7 @@ const outletSchema = new mongoose.Schema(
     },
     name: {
       type: String,
-      // required: true,
+      required: true,
       trim: true,
     },
     address: {
@@ -34,7 +34,7 @@ const outletSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      // required: true,
+      trim: true,
     },
     isActive: {
       type: Boolean,
