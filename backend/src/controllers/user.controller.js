@@ -10,7 +10,7 @@ const createUser = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const response = await userService.createUser(req.body, session);
+    const response = await userService.createUser(req.body, session,req.user);
     if (!response.success) {
       await session.abortTransaction();
       return errorResponse(res, response.status, response.message);

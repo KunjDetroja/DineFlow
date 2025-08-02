@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const Outlet = require("../models/outlet.model");
 const { CHEF, WAITER, MANAGER, ADMIN, OWNER } = require("../utils/constant");
 const {
   loginUserSchema,
@@ -52,7 +53,7 @@ const canAccessUser = (currentUser, targetUser) => {
   return targetUser._id.toString() === currentUser._id.toString();
 };
 
-const createUser = async (data, session) => {
+const createUser = async (data, session, currentUser) => {
   try {
     const { error } = createUserSchema.validate(data);
     if (error) {
@@ -73,19 +74,72 @@ const createUser = async (data, session) => {
       };
     }
 
+    // Role hierarchy validation: ADMIN > OWNER > MANAGER > others
+    const roleHierarchy = {
+      ADMIN: 4,
+      OWNER: 3,
+      MANAGER: 2,
+      CHEF: 1,
+      WAITER: 1,
+      CUSTOMER: 1,
+    };
+
+    const currentUserLevel = roleHierarchy[currentUser.role] || 0;
+    const targetUserLevel = roleHierarchy[data.role] || 0;
+
+    // Rule 1: No one can create ADMIN
+    if (data.role === ADMIN) {
+      return {
+        status: 403,
+        message: "ADMIN role cannot be created",
+        success: false,
+      };
+    }
+
+    // Rule 2: Role creation permissions based on hierarchy
+    if (currentUser.role === ADMIN) {
+      // Admin can create any role except ADMIN
+    } else if (currentUser.role === OWNER) {
+      // Owner can create OWNER or lower roles
+      if (targetUserLevel > roleHierarchy[OWNER]) {
+        return {
+          status: 403,
+          message: "You can only create OWNER or lower level roles",
+          success: false,
+        };
+      }
+    } else if (currentUser.role === MANAGER) {
+      // Manager can create MANAGER or lower roles
+      if (targetUserLevel > roleHierarchy[MANAGER]) {
+        return {
+          status: 403,
+          message: "You can only create MANAGER or lower level roles",
+          success: false,
+        };
+      }
+    } else {
+      return {
+        status: 403,
+        message: "You don't have permission to create users",
+        success: false,
+      };
+    }
+
     const isStaff = [CHEF, WAITER, MANAGER].includes(data.role);
-    const isOwner = data.role === "OWNER";
+    const isOwner = data.role === OWNER;
+
+    // Validate required fields for staff roles
     if (isStaff && !data.outletId) {
       return {
         status: 400,
-        message: "Outlet ID is required",
+        message: "Outlet ID is required for staff roles",
         success: false,
       };
     }
     if (isStaff && !data.restaurantId) {
       return {
         status: 400,
-        message: "Restaurant ID is required",
+        message: "Restaurant ID is required for staff roles",
         success: false,
       };
     }
@@ -96,8 +150,77 @@ const createUser = async (data, session) => {
         success: false,
       };
     }
-    const user = new User(data);
-    const newUser = await user.save({ session });
+
+    // Rule 3: Restaurant/Outlet validation based on creator's role
+    if (currentUser.role === OWNER) {
+      // Owner can only create users in their own restaurant
+      if (
+        data.restaurantId &&
+        data.restaurantId.toString() !== currentUser.restaurantId.toString()
+      ) {
+        return {
+          status: 403,
+          message: "You can only create users in your own restaurant",
+          success: false,
+        };
+      }
+      // Set restaurant ID to owner's restaurant if not provided
+      if (!data.restaurantId) {
+        data.restaurantId = currentUser.restaurantId;
+      }
+    } else if (currentUser.role === MANAGER) {
+      // Manager can only create users in their own restaurant and outlet
+      if (
+        data.restaurantId &&
+        data.restaurantId.toString() !== currentUser.restaurantId.toString()
+      ) {
+        return {
+          status: 403,
+          message: "You can only create users in your own restaurant",
+          success: false,
+        };
+      }
+      if (
+        isStaff &&
+        data.outletId &&
+        data.outletId.toString() !== currentUser.outletId.toString()
+      ) {
+        return {
+          status: 403,
+          message: "You can only create staff in your own outlet",
+          success: false,
+        };
+      }
+      // Set restaurant and outlet IDs to manager's if not provided
+      if (!data.restaurantId) {
+        data.restaurantId = currentUser.restaurantId;
+      }
+      if (isStaff && !data.outletId) {
+        data.outletId = currentUser.outletId;
+      }
+    }
+
+    // Rule 4: Validate that outlet belongs to the specified restaurant
+    if (data.outletId && data.restaurantId) {
+      const outlet = await Outlet.findOne({
+        _id: data.outletId,
+        restaurantId: data.restaurantId,
+        isDeleted: false,
+        isActive: true,
+      });
+
+      if (!outlet) {
+        return {
+          status: 400,
+          message:
+            "The specified outlet does not belong to the specified restaurant or is not active",
+          success: false,
+        };
+      }
+    }
+
+    const newUserData = new User(data);
+    const newUser = await newUserData.save({ session });
     return {
       status: 201,
       message: "User created successfully",
