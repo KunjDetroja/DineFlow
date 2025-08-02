@@ -51,7 +51,34 @@ const createUserSchema = Joi.object({
   }),
 });
 
+const updateUserSchema = Joi.object({
+  name: Joi.string().trim().optional().messages({
+    "string.empty": "Name cannot be empty.",
+  }),
+  email: Joi.string().trim().optional().email().messages({
+    "string.email": "Email must be a valid email address.",
+  }),
+  phone: Joi.string().trim().optional().messages({
+    "string.empty": "Phone number cannot be empty.",
+  }),
+  role: Joi.string()
+    .valid(CUSTOMER, MANAGER, WAITER, OWNER, CHEF)
+    .optional()
+    .messages({
+      "any.only":
+        "Role must be one of the following: CUSTOMER, MANAGER, WAITER, OWNER, CHEF.",
+    }),
+  outletId: Joi.string().optional().allow(null).messages({
+    "string.empty": "Outlet ID cannot be empty.",
+  }),
+  restaurantId: Joi.string().optional().messages({
+    "string.empty": "Restaurant ID cannot be empty.",
+  }),
+  isActive: Joi.boolean().optional(),
+});
+
 module.exports = {
   loginUserSchema,
   createUserSchema,
+  updateUserSchema,
 };

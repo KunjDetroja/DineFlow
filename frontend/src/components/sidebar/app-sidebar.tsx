@@ -65,6 +65,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           },
         ]
       : []),
+    ...(isAdmin || isOwner || isManager
+      ? [
+          {
+            title: "Staff",
+            url: "/staff",
+            icon: Users,
+          },
+        ]
+      : []),
+    ...(isAdmin || isOwner
+      ? [
+          {
+            title: "Outlets",
+            url: "/outlets",
+            icon: Utensils,
+          },
+        ]
+      : []),
     ...(isAdmin || isOwner || isManager || isWaiter || isChef
       ? [
           {
@@ -107,15 +125,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title: "Reservations",
             url: "/reservations",
             icon: Calendar,
-          },
-        ]
-      : []),
-    ...(isAdmin || isOwner || isManager
-      ? [
-          {
-            title: "Staff",
-            url: "/staff",
-            icon: Users,
           },
         ]
       : []),

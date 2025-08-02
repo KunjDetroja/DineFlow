@@ -1,10 +1,56 @@
 const User = require("../models/user.model");
-const { CHEF, WAITER, MANAGER } = require("../utils/constant");
+const { CHEF, WAITER, MANAGER, ADMIN, OWNER } = require("../utils/constant");
 const {
   loginUserSchema,
   createUserSchema,
+  updateUserSchema,
 } = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
+
+// Helper function to check role hierarchy: ADMIN > OWNER > MANAGER > OTHERS
+const canAccessUser = (currentUser, targetUser) => {
+  const roleHierarchy = {
+    ADMIN: 4,
+    OWNER: 3,
+    MANAGER: 2,
+    CHEF: 1,
+    WAITER: 1,
+    CUSTOMER: 1,
+  };
+
+  const currentUserLevel = roleHierarchy[currentUser.role] || 0;
+  const targetUserLevel = roleHierarchy[targetUser.role] || 0;
+
+  // Admin can access anyone
+  if (currentUser.role === ADMIN) return true;
+
+  // Owner can access users in their restaurant (except other owners and admins)
+  if (currentUser.role === OWNER) {
+    if (targetUser.role === ADMIN) return false;
+    if (
+      targetUser.role === OWNER &&
+      targetUser._id.toString() !== currentUser._id.toString()
+    )
+      return false;
+    return (
+      targetUser.restaurantId?.toString() ===
+      currentUser.restaurantId?.toString()
+    );
+  }
+
+  // Manager can access users in their outlet (except owners and admins)
+  if (currentUser.role === MANAGER) {
+    if ([ADMIN, OWNER].includes(targetUser.role)) return false;
+    return (
+      targetUser.outletId?.toString() === currentUser.outletId?.toString() &&
+      targetUser.restaurantId?.toString() ===
+        currentUser.restaurantId?.toString()
+    );
+  }
+
+  // Others can only access themselves
+  return targetUser._id.toString() === currentUser._id.toString();
+};
 
 const createUser = async (data, session) => {
   try {
@@ -81,7 +127,11 @@ const loginUser = async (data) => {
     }
 
     const { email, password } = data;
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({
+      email,
+      isActive: true,
+      isDeleted: false,
+    }).select("+password");
     if (!user) {
       return {
         status: 401,
@@ -131,7 +181,11 @@ const loginUser = async (data) => {
 
 const getCurrentUser = async (userId) => {
   try {
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findOne({
+      _id: userId,
+      isActive: true,
+      isDeleted: false,
+    }).select("-password");
 
     if (!user) {
       return { success: false, statusCode: 404, message: "User not found" };
@@ -148,8 +202,386 @@ const getCurrentUser = async (userId) => {
   }
 };
 
+const getAllUsers = async (req_query, currentUser) => {
+  try {
+    const { page = 1, limit = 10, search = "", status = "" } = req_query;
+    const pageNumber = Number.isInteger(parseInt(page, 10))
+      ? parseInt(page, 10)
+      : 1;
+    const limitNumber = Number.isInteger(parseInt(limit, 10))
+      ? parseInt(limit, 10)
+      : 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Build match stage for aggregation
+    const matchStage = { isDeleted: false };
+
+    // Add search functionality if search term is provided
+    if (search && search.trim() !== "") {
+      matchStage.$or = [
+        { name: { $regex: search.trim(), $options: "i" } },
+        { email: { $regex: search.trim(), $options: "i" } },
+        { phone: { $regex: search.trim(), $options: "i" } },
+      ];
+    }
+
+    // Add status filter if provided
+    if (status && status.trim() !== "") {
+      matchStage.isActive = status.trim() === "true" ? true : false;
+    }
+
+    // Role-based filtering
+    switch (currentUser.role) {
+      case ADMIN:
+        // Admin can see all users
+        break;
+
+      case OWNER:
+        // Owner can see all users under their restaurant
+        matchStage.restaurantId = currentUser.restaurantId;
+        break;
+
+      case MANAGER:
+        // Manager can see users from the same outlet
+        matchStage.outletId = currentUser.outletId;
+        matchStage.restaurantId = currentUser.restaurantId;
+        break;
+
+      default:
+        return {
+          status: 403,
+          message: "Access denied. Insufficient permissions to view users.",
+          success: false,
+        };
+    }
+
+    // Aggregation pipeline
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "restaurants",
+          localField: "restaurantId",
+          foreignField: "_id",
+          as: "restaurantId",
+          pipeline: [{ $project: { name: 1, logo: 1 } }],
+        },
+      },
+      {
+        $lookup: {
+          from: "outlets",
+          localField: "outletId",
+          foreignField: "_id",
+          as: "outletId",
+          pipeline: [{ $project: { name: 1, address: 1 } }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$restaurantId",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$outletId",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          password: 0, // Exclude password field
+        },
+      },
+      {
+        $facet: {
+          data: [{ $skip: skip }, { $limit: limitNumber }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+    const users = result[0].data;
+    const totalUsers = result[0].totalCount[0]?.count || 0;
+
+    if (!users || users.length === 0) {
+      return {
+        status: 404,
+        message: search
+          ? "No users found matching your search"
+          : "No users found",
+        success: false,
+      };
+    }
+
+    const totalPages = Math.ceil(totalUsers / limitNumber);
+    const pagination = {
+      totalItems: totalUsers,
+      totalPages,
+      currentPage: pageNumber,
+      limit: limitNumber,
+    };
+
+    return {
+      status: 200,
+      message: search
+        ? "Users found matching your search"
+        : "Users fetched successfully",
+      success: true,
+      data: {
+        data: users,
+        pagination,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
+const getUserById = async (id, currentUser) => {
+  try {
+    if (!id) {
+      return {
+        status: 400,
+        message: "User ID is required",
+        success: false,
+      };
+    }
+
+    const user = await User.findOne({ _id: id, isDeleted: false })
+      .populate("restaurantId", "name logo")
+      .populate("outletId", "name address")
+      .select("-password");
+
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+        success: false,
+      };
+    }
+
+    // Check if current user can access this user
+    if (!canAccessUser(currentUser, user)) {
+      return {
+        status: 403,
+        message: "Access denied. Insufficient permissions to view this user.",
+        success: false,
+      };
+    }
+
+    return {
+      status: 200,
+      message: "User fetched successfully",
+      success: true,
+      data: user,
+    };
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
+const updateUser = async (id, data, currentUser) => {
+  try {
+    if (!id) {
+      return {
+        status: 400,
+        message: "User ID is required",
+        success: false,
+      };
+    }
+
+    const { error } = updateUserSchema.validate(data);
+    if (error) {
+      return {
+        status: 400,
+        message: error.details[0].message,
+        success: false,
+      };
+    }
+
+    const user = await User.findOne({ _id: id, isDeleted: false });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+        success: false,
+      };
+    }
+
+    // Check if current user can access this user
+    if (!canAccessUser(currentUser, user)) {
+      return {
+        status: 403,
+        message: "Access denied. Insufficient permissions to update this user.",
+        success: false,
+      };
+    }
+
+    // Check if email is being updated and already exists
+    if (data.email && data.email !== user.email) {
+      const existingUser = await User.findOne({
+        email: data.email,
+        _id: { $ne: id },
+        isDeleted: false,
+      });
+      if (existingUser) {
+        return {
+          status: 400,
+          message: "Email already exists",
+          success: false,
+        };
+      }
+    }
+
+    // Role change validation
+    if (data.role && data.role !== user.role) {
+      // Only admin can change roles to ADMIN or OWNER
+      if ([ADMIN, OWNER].includes(data.role) && currentUser.role !== ADMIN) {
+        return {
+          status: 403,
+          message: "Only admin can assign ADMIN or OWNER roles",
+          success: false,
+        };
+      }
+
+      // Owner can't change their own role or other owner's role
+      if (currentUser.role === OWNER && user.role === OWNER) {
+        return {
+          status: 403,
+          message: "Cannot change owner role",
+          success: false,
+        };
+      }
+    }
+
+    // Validate outlet and restaurant requirements for staff roles
+    const isStaff = [CHEF, WAITER, MANAGER].includes(data.role || user.role);
+    if (isStaff) {
+      if (!data.outletId && !user.outletId) {
+        return {
+          status: 400,
+          message: "Outlet ID is required for staff roles",
+          success: false,
+        };
+      }
+      if (!data.restaurantId && !user.restaurantId) {
+        return {
+          status: 400,
+          message: "Restaurant ID is required for staff roles",
+          success: false,
+        };
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { ...data },
+      { new: true, runValidators: true }
+    )
+      .populate("restaurantId", "name logo")
+      .populate("outletId", "name address")
+      .select("-password");
+
+    return {
+      status: 200,
+      message: "User updated successfully",
+      success: true,
+      data: updatedUser,
+    };
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
+const deleteUser = async (id, currentUser) => {
+  try {
+    if (!id) {
+      return {
+        status: 400,
+        message: "User ID is required",
+        success: false,
+      };
+    }
+
+    const user = await User.findOne({ _id: id, isDeleted: false });
+
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+        success: false,
+      };
+    }
+
+    // Check if current user can access this user
+    if (!canAccessUser(currentUser, user)) {
+      return {
+        status: 403,
+        message: "Access denied. Insufficient permissions to delete this user.",
+        success: false,
+      };
+    }
+
+    // Prevent self-deletion
+    if (user._id.toString() === currentUser._id.toString()) {
+      return {
+        status: 400,
+        message: "Cannot delete your own account",
+        success: false,
+      };
+    }
+
+    // Prevent deleting other admins (only admin can delete admin)
+    if (user.role === ADMIN && currentUser.role !== ADMIN) {
+      return {
+        status: 403,
+        message: "Only admin can delete admin accounts",
+        success: false,
+      };
+    }
+
+    // Soft delete
+    await User.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
+
+    return {
+      status: 200,
+      message: "User deleted successfully",
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return {
+      status: 500,
+      message: "Internal server error",
+      success: false,
+    };
+  }
+};
+
 module.exports = {
   createUser,
   loginUser,
   getCurrentUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
 };

@@ -40,7 +40,98 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const currentUser = req.user;
+    const response = await userService.getAllUsers(req.query, currentUser);
+
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return catchResponse(res);
+  }
+};
+
+const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentUser = req.user;
+    const response = await userService.getUserById(id, currentUser);
+
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return catchResponse(res);
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentUser = req.user;
+    const response = await userService.updateUser(id, req.body, currentUser);
+
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return catchResponse(res);
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentUser = req.user;
+    const response = await userService.deleteUser(id, currentUser);
+
+    if (!response.success) {
+      return errorResponse(res, response.status, response.message);
+    }
+
+    return successResponse(
+      res,
+      response.data,
+      response.message,
+      response.status
+    );
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return catchResponse(res);
+  }
+};
+
 module.exports = {
   loginUser,
   getCurrentUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
 };

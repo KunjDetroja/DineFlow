@@ -17,6 +17,8 @@ import Inquiry from "./pages/inquiry/Inquiry";
 import PrivateRoute from "./PrivateRoute";
 import RoleGuard from "./RoleGuard";
 import Restaurants from "./pages/restaurants/Restaurants";
+import Outlets from "./pages/outlets/Outlets";
+import Staff from "./pages/staff/Staff";
 
 function App() {
   return (
@@ -45,13 +47,28 @@ function App() {
                   </RoleGuard>
                 }
               />
+              <Route
+                path="outlets"
+                element={
+                  <RoleGuard requiredRole={["ADMIN", "OWNER"]}>
+                    <Outlets />
+                  </RoleGuard>
+                }
+              />
               <Route path="tables" element={<Tables />} />
               <Route path="tables/edit/:id" element={<EditTable />} />
               <Route path="menu" element={<div>Menu</div>} />
               <Route path="dishes" element={<div>Dishes</div>} />
               <Route path="orders" element={<div>Orders</div>} />
               <Route path="reservations" element={<div>Reservations</div>} />
-              <Route path="staff" element={<div>Staff</div>} />
+              <Route 
+                path="staff" 
+                element={
+                  <RoleGuard requiredRole={["ADMIN", "OWNER", "MANAGER"]}>
+                    <Staff />
+                  </RoleGuard>
+                } 
+              />
               <Route path="reports" element={<div>Reports</div>} />
               <Route path="settings" element={<div>Settings</div>} />
               <Route

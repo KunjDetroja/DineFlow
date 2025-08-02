@@ -1,16 +1,17 @@
-const mongoose = require('mongoose');
-const { ROLES } = require('../utils/constant');
+const mongoose = require("mongoose");
+const { ROLES } = require("../utils/constant");
 const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
     outletId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Outlet',
+      ref: "Outlet",
     },
     restaurantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Restaurant',
+      ref: "Restaurant",
+      required: true,
     },
     name: {
       type: String,
@@ -32,12 +33,20 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      select : false,
+      select: false,
     },
     role: {
       type: String,
       enum: ROLES,
       required: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -61,11 +70,11 @@ userSchema.pre("save", async function (next) {
 
 // Method to compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  if(!this.password) return false;
+  if (!this.password) return false;
   if (!candidatePassword) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

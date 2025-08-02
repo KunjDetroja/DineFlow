@@ -47,7 +47,20 @@ export interface IUser {
   email: string;
   role: string;
   phone: string;
-  restaurantId?: string;
+  restaurantId?: string | {
+    _id: string;
+    name: string;
+    logo?: string;
+  };
+  outletId?: string | {
+    _id: string;
+    name: string;
+    address?: string;
+  };
+  isActive: boolean;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface IRestaurant {
@@ -119,4 +132,34 @@ export interface CreateTableResponse {
 export interface GetAllTablesResponse {
   data: ITable[];
   pagination: pagination;
+}
+
+// Staff/User related interfaces
+export interface CreateUserRequest {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: string;
+  restaurantId?: string;
+  outletId?: string;
+}
+
+export interface CreateUserResponse {
+  user: IUser;
+}
+
+export interface GetAllUsersResponse {
+  data: IUser[];
+  pagination: pagination;
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  restaurantId?: string;
+  outletId?: string;
+  isActive?: boolean;
 }

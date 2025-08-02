@@ -9,7 +9,7 @@ import { IUser } from "@/types";
 
 const initialState = {
   data: null as IUser | null,
-  filter: null,
+  filter: {} as Record<string, unknown>,
   token: getFromLocalStorage("token") || null,
   role: null as string | null,
 };
@@ -29,6 +29,12 @@ const userSlice = createSlice({
 
       removeFromLocalStorage("token");
     },
+    setUserFilter: (state, action) => {
+      state.filter = action.payload;
+    },
+    clearUserFilter: (state) => {
+      state.filter = {};
+    },
   },
   extraReducers: (builder) => {
     builder.addMatcher(
@@ -46,6 +52,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUserDetails, logout } = userSlice.actions;
+export const { setUserDetails, logout, setUserFilter, clearUserFilter } = userSlice.actions;
 
 export default userSlice.reducer;
