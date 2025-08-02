@@ -1,5 +1,6 @@
 const User = require("../models/user.model");
 const Outlet = require("../models/outlet.model");
+const mongoose  = require("mongoose");
 const { CHEF, WAITER, MANAGER, ADMIN, OWNER } = require("../utils/constant");
 const {
   loginUserSchema,
@@ -18,6 +19,9 @@ const canAccessUser = (currentUser, targetUser) => {
     WAITER: 1,
     CUSTOMER: 1,
   };
+
+  console.log("currentUser", currentUser);
+  console.log("targetUser", targetUser);
 
   const currentUserLevel = roleHierarchy[currentUser.role] || 0;
   const targetUserLevel = roleHierarchy[targetUser.role] || 0;
@@ -250,19 +254,23 @@ const loginUser = async (data) => {
     }
 
     const { email, password } = data;
-    const user = await User.findOne({
+
+    // First, find user with password for authentication
+    const userForAuth = await User.findOne({
       email,
       isActive: true,
       isDeleted: false,
     }).select("+password");
-    if (!user) {
+
+    if (!userForAuth) {
       return {
         status: 401,
         message: "Invalid email or password",
         success: false,
       };
     }
-    const isMatch = await user.comparePassword(password);
+
+    const isMatch = await userForAuth.comparePassword(password);
     if (!isMatch) {
       return {
         status: 401,
@@ -270,6 +278,72 @@ const loginUser = async (data) => {
         success: false,
       };
     }
+
+    // Now get user with restaurant/outlet data using aggregation
+    const pipeline = [
+      {
+        $match: {
+          _id: userForAuth._id,
+          isActive: true,
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          password: 0, // Exclude password field
+        },
+      },
+      {
+        $lookup: {
+          from: "restaurants",
+          let: { restaurantId: "$restaurantId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_id", "$$restaurantId"] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "restaurant",
+        },
+      },
+      {
+        $lookup: {
+          from: "outlets",
+          let: { outletId: "$outletId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_id", "$$outletId"] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "outlet",
+        },
+      },
+      {
+        $addFields: {
+          restaurant: { $arrayElemAt: ["$restaurant", 0] },
+          outlet: { $arrayElemAt: ["$outlet", 0] },
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+    const user = result[0];
+
     const payload = {
       id: user._id,
     };
@@ -284,6 +358,8 @@ const loginUser = async (data) => {
       email: user.email,
       phone: user.phone,
       role: user.role,
+      restaurant: user.restaurant,
+      outlet: user.outlet,
       token,
     };
     return {
@@ -304,11 +380,69 @@ const loginUser = async (data) => {
 
 const getCurrentUser = async (userId) => {
   try {
-    const user = await User.findOne({
-      _id: userId,
-      isActive: true,
-      isDeleted: false,
-    }).select("-password");
+    const pipeline = [
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(userId),
+          isActive: true,
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          password: 0, // Exclude password field
+        },
+      },
+      {
+        $lookup: {
+          from: "restaurants",
+          let: { restaurantId: "$restaurantId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_id", "$$restaurantId"] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "restaurant",
+        },
+      },
+      {
+        $lookup: {
+          from: "outlets",
+          let: { outletId: "$outletId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_id", "$$outletId"] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "outlet",
+        },
+      },
+      {
+        $addFields: {
+          restaurant: { $arrayElemAt: ["$restaurant", 0] },
+          outlet: { $arrayElemAt: ["$outlet", 0] },
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+    const user = result[0];
 
     if (!user) {
       return { success: false, statusCode: 404, message: "User not found" };
@@ -477,11 +611,80 @@ const getUserById = async (id, currentUser) => {
       };
     }
 
-    const user = await User.findOne({ _id: id, isDeleted: false })
-      .populate("restaurantId", "name logo")
-      .populate("outletId", "name address")
-      .select("-password");
+    const pipeline = [
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+          isDeleted: false,
+        },
+      },
+      {
+        $project: {
+          password: 0, // Exclude password field
+        },
+      },
+      {
+        $lookup: {
+          from: "restaurants",
+          let: { restaurantId: "$restaurantId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_id", "$$restaurantId"] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                logo: 1,
+              },
+            },
+          ],
+          as: "restaurant",
+        },
+      },
+      {
+        $lookup: {
+          from: "outlets",
+          let: { outletId: "$outletId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$_id", "$$outletId"] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                address: 1,
+              },
+            },
+          ],
+          as: "outlet",
+        },
+      },
+      {
+        $addFields: {
+          restaurant: { $arrayElemAt: ["$restaurant", 0] },
+          outlet: { $arrayElemAt: ["$outlet", 0] },
+        },
+      },
+    ];
 
+    const result = await User.aggregate(pipeline);
+    const user = result[0];
     if (!user) {
       return {
         status: 404,

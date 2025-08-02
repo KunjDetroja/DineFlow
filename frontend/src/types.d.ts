@@ -47,12 +47,12 @@ export interface IUser {
   email: string;
   role: string;
   phone: string;
-  restaurantId?: string | {
+  restaurant?: {
     _id: string;
     name: string;
     logo?: string;
   };
-  outletId?: string | {
+  outlet?: {
     _id: string;
     name: string;
     address?: string;

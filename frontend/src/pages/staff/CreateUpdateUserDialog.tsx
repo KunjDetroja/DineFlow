@@ -36,6 +36,18 @@ import {
 import { ROLES, OWNER, MANAGER, CHEF, WAITER, ADMIN } from "@/utils/constant";
 import { RootState } from "@/store";
 
+// Form data type that includes all possible fields for type safety
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  restaurantId?: string;
+  outletId?: string;
+  isActive?: boolean;
+  password?: string;
+}
+
 interface CreateUpdateUserDialogProps {
   userId?: string; // If provided, it's update mode; if not, it's create mode
   onClose: () => void;
@@ -51,14 +63,8 @@ const CreateUpdateUserDialog = ({
   const currentUser = useSelector((state: RootState) => state.user.data);
   console.log("currentUser", currentUser);
   const currentUserRole = currentUser?.role;
-  const currentUserRestaurantId =
-    typeof currentUser?.restaurantId === "object" && currentUser?.restaurantId
-      ? currentUser.restaurantId._id
-      : currentUser?.restaurantId;
-  const currentUserOutletId =
-    typeof currentUser?.outletId === "object" && currentUser?.outletId
-      ? currentUser.outletId._id
-      : currentUser?.outletId;
+  const currentUserRestaurantId = currentUser?.restaurant?._id
+  const currentUserOutletId = currentUser?.outlet?._id
 
   const { data: userData, isLoading: isLoadingUser } = useGetUserByIdQuery(
     userId!,
@@ -68,8 +74,12 @@ const CreateUpdateUserDialog = ({
   );
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
-  const { data: restaurantsData } = useGetAllRestaurantsQuery({});
-  const { data: outletsData } = useGetAllOutletsQuery({});
+  const { data: restaurantsData } = useGetAllRestaurantsQuery({}, {
+    skip: currentUserRole !== ADMIN
+  });
+  const { data: outletsData } = useGetAllOutletsQuery({}, {
+    skip: ![ADMIN, OWNER].includes(currentUserRole as string)
+  });
 
   const restaurants = restaurantsData?.data?.data || [];
   const outlets = outletsData?.data?.data || [];
@@ -77,6 +87,7 @@ const CreateUpdateUserDialog = ({
   const user = userData?.data;
   const isLoading = isUpdating || isCreating;
 
+  // Form setup with proper typing
   const {
     register,
     handleSubmit,
@@ -84,8 +95,8 @@ const CreateUpdateUserDialog = ({
     watch,
     reset,
     control,
-  } = useForm({
-    resolver: zodResolver(isUpdateMode ? updateUserSchema : createUserSchema),
+  } = useForm<FormData>({
+    resolver: zodResolver(isUpdateMode ? updateUserSchema : createUserSchema) as any,
     defaultValues: {
       name: "",
       email: "",
@@ -130,7 +141,7 @@ const CreateUpdateUserDialog = ({
   const allowedRoles = getAllowedRoles();
 
   // Determine if restaurant/outlet fields should be shown based on current user role
-  const shouldShowRestaurantField = (selectedRole: string): boolean => {
+  const shouldShowRestaurantField = (selectedRole?: string): boolean => {
     if (!selectedRole) return false;
 
     // ADMIN can select any restaurant
@@ -142,7 +153,7 @@ const CreateUpdateUserDialog = ({
     return false;
   };
 
-  const shouldShowOutletField = (selectedRole: string): boolean => {
+  const shouldShowOutletField = (selectedRole?: string): boolean => {
     if (!selectedRole) return false;
 
     // ADMIN can select any outlet for MANAGER, CHEF, WAITER
@@ -161,14 +172,8 @@ const CreateUpdateUserDialog = ({
 
   useEffect(() => {
     if (isUpdateMode && user) {
-      const restaurantId =
-        typeof user.restaurantId === "object" && user.restaurantId
-          ? user.restaurantId._id
-          : user.restaurantId;
-      const outletId =
-        typeof user.outletId === "object" && user.outletId
-          ? user.outletId._id
-          : user.outletId;
+      const restaurantId = user.restaurant?._id
+      const outletId = user.outlet?._id
 
       reset({
         name: user.name,
@@ -218,7 +223,7 @@ const CreateUpdateUserDialog = ({
     reset,
   ]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FormData) => {
     // Validate role hierarchy
     if (!isUpdateMode && data.role && !allowedRoles.includes(data.role)) {
       toast.error("You don't have permission to create this role");
@@ -246,6 +251,7 @@ const CreateUpdateUserDialog = ({
 
     // Remove empty string values from data
     const cleanedData = Object.fromEntries(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       Object.entries(data).filter(([_, value]) => value !== "")
     );
 
@@ -270,7 +276,7 @@ const CreateUpdateUserDialog = ({
     } catch (error: any) {
       toast.error(
         error?.data?.message ||
-          `Failed to ${isUpdateMode ? "update" : "create"} staff member`
+        `Failed to ${isUpdateMode ? "update" : "create"} staff member`
       );
     }
   };
@@ -371,11 +377,11 @@ const CreateUpdateUserDialog = ({
               type="password"
               {...register("password")}
               placeholder="Enter password"
-              className={(errors as any).password ? "border-red-500" : ""}
+              className={errors.password ? "border-red-500" : ""}
             />
-            {(errors as any).password && (
+            {errors.password && (
               <p className="text-sm text-red-500">
-                {(errors as any).password.message}
+                {errors.password.message}
               </p>
             )}
           </div>
@@ -552,8 +558,8 @@ const CreateUpdateUserDialog = ({
                 ? "Updating..."
                 : "Creating..."
               : isUpdateMode
-              ? "Update Staff Member"
-              : "Create Staff Member"}
+                ? "Update Staff Member"
+                : "Create Staff Member"}
           </Button>
         </DialogFooter>
       </form>
