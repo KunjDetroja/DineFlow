@@ -15,6 +15,10 @@ interface LoginResponse {
     role: string;
     token: string;
     phone: string;
+    isActive: boolean;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
